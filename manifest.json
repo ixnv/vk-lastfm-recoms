@@ -1,0 +1,28 @@
+
+{
+  "name": "LastFM similar artists in VK",
+  "description" : "LastFM similar artists in VK",
+  "version": "1.0",
+  "manifest_version": 2,
+  "browser_action": {
+    "default_title": "LastFM similar artists in VK",
+    "default_icon": "icon.png"
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "debugger",
+    "https://vk.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://vk.com/*"],
+      "css": ["app.css"],
+      "js": ["app.js"]
+    }
+  ],
+  "background": {
+    "persistent": false,
+    "scripts": ["background.js"]
+  }
+}

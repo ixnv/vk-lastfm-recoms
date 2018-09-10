@@ -1,0 +1,27 @@
+.vkappext-wrapper {
+    margin: auto 15px;    
+}
+
+.vkappext-artist {
+    display: inline-block;
+    vertical-align: top;
+    padding-bottom: 15px;    
+}
+
+.vkappext-artist_image {
+    display: inline-block;
+    width: 150px;
+}
+
+.vkappext-artist_title {
+    display: block;
+    max-width: 150px;
+    margin-top: 5px;
+}
+
+.vkappext-load-more {
+    width: 100%;
+    text-align: center;
+    padding: 5px 5px;
+    border: 1px skyblue solid;
+}
