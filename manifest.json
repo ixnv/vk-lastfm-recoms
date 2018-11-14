@@ -23,6 +23,6 @@
   ],
   "background": {
     "persistent": false,
-    "scripts": ["background.js"]
+    "scripts": ["background.js","hot-reload.js"]
   }
 }
