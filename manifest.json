@@ -12,8 +12,10 @@
     "tabs",
     "activeTab",
     "debugger",
+    "storage",
     "https://vk.com/*"
   ],
+  "web_accessible_resources" : ["app.css"],
   "content_scripts": [
     {
       "matches": ["https://vk.com/*"],
@@ -23,6 +25,6 @@
   ],
   "background": {
     "persistent": false,
-    "scripts": ["background.js","hot-reload.js"]
+    "scripts": ["background.js", "hot-reload.js"]
   }
 }
