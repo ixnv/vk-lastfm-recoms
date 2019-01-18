@@ -2,7 +2,7 @@
 
 /** global chrome */
 
-// for debug
+// for debugging css
 // https://github.com/lateral/chrome-extension-blogpost/compare/master...paulirish:master
 function injectStyles(url) {
     var elem = document.createElement('link');
@@ -10,8 +10,7 @@ function injectStyles(url) {
     elem.setAttribute('href', url);
     document.body.appendChild(elem);
 }
-
-injectStyles(chrome.extension.getURL('app.css'))
+// injectStyles(chrome.extension.getURL('app.css'))
 
 class Vk {
     constructor() {
@@ -19,17 +18,13 @@ class Vk {
     }
 
     getUserId() {
-        // lol. TODO: create temp <script> and grab vk.id property
+        // lol
         const audioPageLink = document.querySelector('#l_aud > a')
         if (!audioPageLink) {
             return null            
         }
 
         return audioPageLink.href.substring(21)
-    }
-
-    static isAudioPage() {
-        return location.pathname.search('/audio') !== -1
     }
 
     async * searchAudioTracks(tracks) {
@@ -61,7 +56,8 @@ class Vk {
 
                 const html = document.createElement('html')
                 html.innerHTML = result
-                // for now only one is enough
+
+                // TODO: filter by artist name
                 const node = html.querySelector('.audio_row')
                 if (node) {
                     return node
@@ -105,91 +101,100 @@ class RecommedationsApi {
     }
 }
 
-class Artist {
-    constructor(name, thumbnail) {
-        this.name = name
-        this.thumbnail = thumbnail
-        // for opening in new tab
-        this.link = `https://vk.com/audio?performer=1&q=${encodeURIComponent(name)}`
-    }
-}
-
+// TODO: switch to react
 class Templates {
     constructor(namespace) {
         this.ns = namespace
     }
 
-    wrapper(content) {
-        return `
-            <section class="_audio_page_titled_block">
-                <h2>Похожие исполнители</h2>
-                <div class="_audio_page_titled_playlists">
-                    ${content}
-                </div>
-            </section>
-        `;
-    }
-
-    artistList(list) {
-        return list.map(artist => `
-            <div class="${this.ns}-artist">
-                <img class="${this.ns}-artist_image" src="${artist.thumbnail}" alt="${artist.name}">
-                <a href="${artist.link}" class="${this.ns}-artist_title audio_pl_snippet__artist_link">${artist.name}</a>
-            </div>
-        `).join('')
-    }
-
-    loadMore(offset) {
-        return `
-            <button class="${this.ns}-load-more">
-                Показать еще
-            </button>
-        `
-    }
-
-    renderResultDialog() {
+    createResultDialog() {
         const dialog = document.createElement('dialog')
         dialog.id = `${this.ns}-result-dialog`
         document.body.appendChild(dialog)
+
+        const loader = `
+            <div class="${this.ns}-loader lds-ellipsis">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        `
+
+        dialog.innerHTML = `
+            <h3>Похожие на <strong class="${this.ns}-track"></strong></h3>
+            <div class="${this.ns}-result-dialog__more-btn" data-more="[]">
+                <a>Попробовать ещё раз</a>
+            </div>
+            ${loader}
+            <div class="${this.ns}-result-list"></div>
+            <div class="${this.ns}-not-found">Ничего не найдено</div>  
+         `
+
         return dialog
     }
 
-    resetResultDialog() {
-        const dialog = document.body.querySelector(`#${this.ns}-result-dialog`)
-        const loader = `<div class="${this.ns}-loader lds-ellipsis"><div></div><div></div><div></div><div></div></div>`
-
+    openDialog(dialog, artist, track) {
         if (dialog.open) {
             dialog.close()
         }
 
-        dialog.innerHTML = loader
+        this.hideNotFoundResult()
+        this.clearResult()
+        this.setResultInfo(artist, track)
+        this.showLoader()
+
+        dialog.dataset.artist = artist
+        dialog.dataset.track = track
         dialog.showModal()
         return dialog
     }
 
-    appendAudioRow(dialog, audioRow) {
-        dialog.append(audioRow)
+    setResultInfo(artist, track) {
+        document.querySelector(`.${this.ns}-track`).textContent = `${decodeURIComponent(artist)} - ${decodeURIComponent(track)}`
     }
 
-    stopLoader() {
+    setMoreTracks(moreTracks) {
+        const moreTracksButton = document.querySelector(`.${this.ns}-result-dialog__more-btn`)
+        moreTracksButton.dataset.more = JSON.stringify(moreTracks)
+    }
+
+    clearResult() {
+        this.hideNotFoundResult()
+        document.body.querySelector(`.${this.ns}-result-list`).innerHTML = ''
+    }
+
+    appendAudioRow(dialog, audioRow) {
+        document.body.querySelector(`.${this.ns}-result-list`).append(audioRow)
+    }
+
+    showLoader() {
+        const loader = document.querySelector(`.${this.ns}-loader`)
+        loader.style.display = 'block'
+    }
+
+    hideLoader() {
         const loader = document.querySelector(`.${this.ns}-loader`)
         loader.style.display = 'none'
     }
-}
 
-const dom = {
-    insertAfterElement(elem, refElem) {
-        return refElem.parentNode.insertBefore(elem, refElem.nextSibling)
-    },
-    insertBeforeElement(elem, refElem) {
-        return refElem.parentNode.insertBefore(elem, refElem)
+    showNotFoundResult() {
+        document.querySelector(`.${this.ns}-not-found`).style.display = 'block'
+    }
+
+    hideNotFoundResult() {
+        document.querySelector(`.${this.ns}-not-found`).style.display = 'none'
     }
 }
 
+const PAGE_SIZE = 10
+
 async function init() {
+    const vkClient = new Vk()
+    const recommedationsApi = new RecommedationsApi()
     const templates = new Templates('vkappext')
 
-    const dialog = templates.renderResultDialog()
+    const dialog = templates.createResultDialog()
 
     dialog.addEventListener('click', function (event) {
         const rect = dialog.getBoundingClientRect()
@@ -200,12 +205,47 @@ async function init() {
         }
     })
 
-    const btnClass = `${templates.ns}-btn-similar`
+    const searchVkTracks = async (tracks) => {
+        const search = vkClient.searchAudioTracks(tracks)
 
-    const vkClient = new Vk()
-    const recommedationsApi = new RecommedationsApi()
+        let foundAny = false
 
-    // why mousedown? 'click' triggers audio playback, because .audio_row__actions gets deleted on click event
+        while (true) {
+            const iter = await search.next()
+
+            if (iter.done) {
+                templates.hideLoader()
+                break
+            }
+
+            const audioRow = iter.value
+
+            if (audioRow) {
+                foundAny = true
+                templates.appendAudioRow(dialog, audioRow)
+            }
+        }
+
+        if (!foundAny) {
+            templates.showNotFoundResult(dialog)
+        }
+    }
+
+    const findTracks = async (artist, track) => {
+        const similarTracks = await recommedationsApi.getTracks(artist, track)
+
+        const tracksForOnePage = similarTracks.slice(0, PAGE_SIZE)
+        const moreTracks = similarTracks.slice(PAGE_SIZE)
+
+        if (moreTracks) {
+            templates.setMoreTracks(moreTracks)
+        }
+
+        await searchVkTracks(tracksForOnePage)
+    }
+
+    const btnClass = `${templates.ns}-similar-btn`
+
     document.addEventListener('click', async (e) => {
         const { target } = e
 
@@ -213,35 +253,11 @@ async function init() {
             return
         }
 
-        e.cancelBubble = true
-        e.preventDefault()
-        e.stopImmediatePropagation()
-        e.stopPropagation()
-
-
-        templates.resetResultDialog()
-
         const { artist, track } = target.dataset
 
-        const similarTracks = await recommedationsApi.getTracks(artist, track)
-        const search = vkClient.searchAudioTracks(similarTracks)
+        templates.openDialog(dialog, artist, track)
 
-        while (true) {
-            const iter = await search.next()
-
-            if (iter.done) {
-                templates.stopLoader()
-                break
-            }
-
-            const audioRow = iter.value
-
-            if (audioRow) {
-                templates.appendAudioRow(dialog, audioRow)
-            }
-        }
-
-        return false
+        await findTracks(artist, track)
     })
 
     document.addEventListener('mouseover', ({ target }) => {
@@ -251,7 +267,6 @@ async function init() {
             return
         }
 
-
         setTimeout(() => {
             const actions = closest.querySelector('.audio_row__actions')
 
@@ -259,7 +274,7 @@ async function init() {
                 return
             }
     
-            const audioRow = actions.closest('.audio_row__inner');
+            const audioRow = actions.closest('.audio_row__inner')
     
             // encode it right away, because non-html symbols get weird when saved in data-*
             const artist = encodeURIComponent(audioRow.querySelector('.audio_row__performers > a').textContent)
@@ -269,6 +284,24 @@ async function init() {
             div.innerHTML = `<button data-artist="${artist}" data-track="${track}" class="${btnClass} audio_row__action"></button>`
             actions.appendChild(div.firstChild)
         }, 100)
+    })
+
+    document.body.querySelector(`.${templates.ns}-result-dialog__more-btn`).addEventListener('click', async (e) => {
+        templates.showLoader()
+        templates.clearResult()
+
+        const more = JSON.parse(e.target.closest('div').dataset.more)
+
+        if (!more.length) {
+            const {artist, track} = dialog.dataset
+            templates.setResultInfo(artist, track)
+            await findTracks(artist, track)
+
+            return false
+        }
+
+        templates.setMoreTracks(more.slice(PAGE_SIZE))
+        await searchVkTracks(more.slice(0, PAGE_SIZE))
     })
 }
 
