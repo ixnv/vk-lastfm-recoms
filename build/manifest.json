@@ -1,7 +1,7 @@
 
 {
-  "name": "Рекомендации аудио VK из LastFM",
-  "description" : "Показывает рекомендации по ",
+  "name": "VK - рекомендации аудио из LastFM",
+  "description" : "Показывает рекомендации сервиса Last FM для аудиозаписей VK",
   "version": "1.0",
   "manifest_version": 2,
   "browser_action": {
@@ -9,22 +9,14 @@
     "default_icon": "icon.png"
   },
   "permissions": [
-    "tabs",
-    "activeTab",
-    "debugger",
     "storage",
     "https://vk.com/*"
   ],
-  "web_accessible_resources" : ["app.css"],
   "content_scripts": [
     {
       "matches": ["https://vk.com/*"],
       "css": ["app.css"],
       "js": ["app.js"]
     }
-  ],
-  "background": {
-    "persistent": false,
-    "scripts": ["background.js", "hot-reload.js"]
-  }
+  ]
 }

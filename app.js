@@ -5,12 +5,13 @@
 // for debugging css
 // https://github.com/lateral/chrome-extension-blogpost/compare/master...paulirish:master
 function injectStyles(url) {
-    var elem = document.createElement('link');
+    const elem = document.createElement('link');
     elem.rel = 'stylesheet';
     elem.setAttribute('href', url);
     document.body.appendChild(elem);
 }
-// injectStyles(chrome.extension.getURL('app.css'))
+
+injectStyles(chrome.extension.getURL('app.css'))
 
 class Vk {
     constructor() {
@@ -21,7 +22,7 @@ class Vk {
         // lol
         const audioPageLink = document.querySelector('#l_aud > a')
         if (!audioPageLink) {
-            return null            
+            return null
         }
 
         return audioPageLink.href.substring(21)
@@ -66,6 +67,20 @@ class Vk {
                 return null
             })
         }
+    }
+
+    // copied from vk sources
+    cancelEvent(e) {
+        if (!(e = e || window.event))
+            return !1
+        for (; e.originalEvent;)
+            e = e.originalEvent
+        return e.preventDefault && e.preventDefault(),
+            e.stopPropagation && e.stopPropagation(),
+            e.stopImmediatePropagation && e.stopImmediatePropagation(),
+            e.cancelBubble = !0,
+            e.returnValue = !1,
+            !1
     }
 }
 
@@ -115,7 +130,9 @@ class Templates {
         return dialog
     }
 
-    openDialog(dialog, artist, track) {
+    openDialog(artist, track) {
+        const dialog = document.querySelector(`#${this.ns}-result-dialog`)
+
         if (dialog.open) {
             dialog.close()
         }
@@ -227,21 +244,37 @@ async function init() {
 
     const btnClass = `${templates.ns}-similar-btn`
 
-    document.addEventListener('click', async (e) => {
-        const { target } = e
+
+    /*document.addEventListener('click', async (e) => {
+        const {target} = e
 
         if (!target.classList.contains(btnClass)) {
             return
         }
 
-        const { artist, track } = target.dataset
+        function l(e) {
+            if (!(e = e || window.event))
+                return !1;
+            for (; e.originalEvent; )
+                e = e.originalEvent;
+            return e.preventDefault && e.preventDefault(),
+            e.stopPropagation && e.stopPropagation(),
+            e.stopImmediatePropagation && e.stopImmediatePropagation(),
+                e.cancelBubble = !0,
+                e.returnValue = !1,
+                !1
+        }
+
+        l(e)
+
+        const {artist, track} = target.dataset
 
         templates.openDialog(dialog, artist, track)
 
         await findTracks(artist, track)
-    })
+    })*/
 
-    document.addEventListener('mouseover', ({ target }) => {
+    document.addEventListener('mouseover', ({target}) => {
         const closest = target.closest('.audio_row')
 
         if (!closest) {
@@ -254,16 +287,24 @@ async function init() {
             if (!actions || actions.querySelector(`.${btnClass}`)) {
                 return
             }
-    
+
             const audioRow = actions.closest('.audio_row__inner')
-    
+
             // encode it right away, because non-html symbols get weird when saved in data-*
             const artist = encodeURIComponent(audioRow.querySelector('.audio_row__performers > a').textContent)
             const track = encodeURIComponent(audioRow.querySelector('.audio_row__title_inner').textContent)
-    
+            const buttonId = `${templates.ns}-find-similar`
             const div = document.createElement('div')
-            div.innerHTML = `<button data-artist="${artist}" data-track="${track}" class="${btnClass} audio_row__action"></button>`
+            div.innerHTML = `<a id="${buttonId}" data-artist="${artist}" data-track="${track}" class="${btnClass} audio_row__action"></a>`
             actions.appendChild(div.firstChild)
+            document.querySelector(`#${buttonId}`).addEventListener('click', async (event) => {
+                vkClient.cancelEvent(event)
+
+                const {target} = event
+                const {artist, track} = target.dataset
+                templates.openDialog(artist, track)
+                await findTracks(artist, track)
+            })
         }, 100)
     })
 
