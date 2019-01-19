@@ -69,32 +69,13 @@ class Vk {
     }
 }
 
-class Settings {
-    static async getUnwantedArtists() {
-        return await chrome.storage.sync.get(['unwantedArtists'], (value) => {
-            if (Object.keys(value).length) {
-                return value
-            }
-
-            return []
-        })
-    }
-}
-
 class RecommedationsApi {
     constructor() {
         this.apiRoot = 'https://hblah41x5a.execute-api.eu-central-1.amazonaws.com/api'
     }
 
     async getTracks(artist, track) {
-        let url = `${this.apiRoot}/similar-tracks?artist=${(artist)}&track=${(track)}`
-
-        const unwanted = await Settings.getUnwantedArtists()
-        if (unwanted) {
-            url += `&unwanted=${unwanted}`
-        }
-
-        return await fetch(url)
+        return await fetch(`${this.apiRoot}/similar-tracks?artist=${(artist)}&track=${(track)}`)
             .then(r => r.json())
             .then(response => response)
             .catch(r => [])
