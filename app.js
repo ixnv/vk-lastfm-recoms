@@ -28,7 +28,7 @@ class Vk {
         return audioPageLink.href.substring(21)
     }
 
-    async * searchAudioTracks(tracks) {
+    async* searchAudioTracks(tracks) {
         if (!tracks) {
             return null
         }
@@ -76,8 +76,8 @@ class Vk {
         for (; e.originalEvent;)
             e = e.originalEvent
         return e.preventDefault && e.preventDefault(),
-            e.stopPropagation && e.stopPropagation(),
-            e.stopImmediatePropagation && e.stopImmediatePropagation(),
+        e.stopPropagation && e.stopPropagation(),
+        e.stopImmediatePropagation && e.stopImmediatePropagation(),
             e.cancelBubble = !0,
             e.returnValue = !1,
             !1
@@ -103,10 +103,9 @@ class Templates {
         this.ns = namespace
     }
 
-    createResultDialog() {
-        const dialog = document.createElement('dialog')
-        dialog.id = `${this.ns}-result-dialog`
-        document.body.appendChild(dialog)
+    render() {
+        const wrapper = document.createElement('div')
+        document.body.appendChild(wrapper)
 
         const loader = `
             <div class="${this.ns}-loader lds-ellipsis">
@@ -117,24 +116,36 @@ class Templates {
             </div>
         `
 
-        dialog.innerHTML = `
-            <h3>Похожие на <strong class="${this.ns}-track"></strong></h3>
-            <div class="${this.ns}-result-dialog__more-btn" data-more="[]">
-                <a>Попробовать ещё раз</a>
+        wrapper.innerHTML = `
+            <div class="${this.ns}-backdrop"></div>
+            <div id="${this.ns}-result-dialog">
+                <h3 class="${this.ns}-result-dialog__info">Похожие на <strong class="${this.ns}-track"></strong></h3>
+                <div class="${this.ns}-result-dialog__more-btn" data-more="[]">
+                    <a>Еще</a>
+                </div>
+                ${loader}
+                <div class="${this.ns}-result-list"></div>
+                <div class="${this.ns}-not-found">Ничего не найдено</div>
             </div>
-            ${loader}
-            <div class="${this.ns}-result-list"></div>
-            <div class="${this.ns}-not-found">Ничего не найдено</div>  
          `
 
-        return dialog
+        document.querySelector(`.${this.ns}-backdrop`).addEventListener('click', (e) => {
+            document.querySelector(`.${this.ns}-backdrop`).style.display = 'none'
+            this.getDialogNode().style.display = 'none'
+        }, true)
+    }
+
+    getDialogNode() {
+        return document.querySelector(`#${this.ns}-result-dialog`)
     }
 
     openDialog(artist, track) {
-        const dialog = document.querySelector(`#${this.ns}-result-dialog`)
+        this.showBackground()
 
-        if (dialog.open) {
-            dialog.close()
+        const dialog = this.getDialogNode()
+
+        if (dialog.style.display === 'block') {
+            dialog.style.display = 'none'
         }
 
         this.hideNotFoundResult()
@@ -144,7 +155,7 @@ class Templates {
 
         dialog.dataset.artist = artist
         dialog.dataset.track = track
-        dialog.showModal()
+        dialog.style.display = 'block'
         return dialog
     }
 
@@ -171,6 +182,10 @@ class Templates {
         loader.style.display = 'block'
     }
 
+    showBackground() {
+        document.querySelector(`.${this.ns}-backdrop`).style.display = 'block'
+    }
+
     hideLoader() {
         const loader = document.querySelector(`.${this.ns}-loader`)
         loader.style.display = 'none'
@@ -192,16 +207,9 @@ async function init() {
     const recommedationsApi = new RecommedationsApi()
     const templates = new Templates('vkappext')
 
-    const dialog = templates.createResultDialog()
+    templates.render()
 
-    dialog.addEventListener('click', function (event) {
-        const rect = dialog.getBoundingClientRect()
-        const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height
-            && rect.left <= event.clientX && event.clientX <= rect.left + rect.width)
-        if (!isInDialog) {
-            dialog.close()
-        }
-    })
+    const dialog = templates.getDialogNode()
 
     const searchVkTracks = async (tracks) => {
         const search = vkClient.searchAudioTracks(tracks)
@@ -243,36 +251,6 @@ async function init() {
     }
 
     const btnClass = `${templates.ns}-similar-btn`
-
-
-    /*document.addEventListener('click', async (e) => {
-        const {target} = e
-
-        if (!target.classList.contains(btnClass)) {
-            return
-        }
-
-        function l(e) {
-            if (!(e = e || window.event))
-                return !1;
-            for (; e.originalEvent; )
-                e = e.originalEvent;
-            return e.preventDefault && e.preventDefault(),
-            e.stopPropagation && e.stopPropagation(),
-            e.stopImmediatePropagation && e.stopImmediatePropagation(),
-                e.cancelBubble = !0,
-                e.returnValue = !1,
-                !1
-        }
-
-        l(e)
-
-        const {artist, track} = target.dataset
-
-        templates.openDialog(dialog, artist, track)
-
-        await findTracks(artist, track)
-    })*/
 
     document.addEventListener('mouseover', ({target}) => {
         const closest = target.closest('.audio_row')
