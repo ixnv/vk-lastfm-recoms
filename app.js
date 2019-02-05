@@ -90,7 +90,7 @@ class RecommedationsApi {
     }
 
     async getTracks(artist, track) {
-        return await fetch(`${this.apiRoot}/similar-tracks?artist=${(artist)}&track=${(track)}`)
+        return await fetch(`${this.apiRoot}/similar-tracks?artist=${(artist)}&track=${(track)}&unwanted=["Oxxxymiron"]`)
             .then(r => r.json())
             .then(response => response)
             .catch(r => [])
