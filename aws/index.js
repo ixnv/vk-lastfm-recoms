@@ -1,7 +1,5 @@
 const fetch = require('node-fetch')
-const jsdom = require('jsdom')
-const {JSDOM} = jsdom;
-
+const JSDOM = require('jsdom').JSDOM
 
 const getContent = async (url) => {
     return new Promise((resolve, reject) => {
@@ -49,6 +47,8 @@ class LastFMClient {
     constructor(token) {
         this.token = token
         this.apiRoot = 'https://ws.audioscrobbler.com/2.0/'
+
+        this.ERROR_INVALID_PARAM = 6 // artist or track not found
     }
 
     /**
@@ -57,7 +57,7 @@ class LastFMClient {
      * @returns {string}
      */
     createUrl(method, params) {
-        Object.keys(params).map(function(key) {
+        Object.keys(params).map(function (key) {
             params[key] = encodeURIComponent(params[key])
         })
 
@@ -115,7 +115,7 @@ class LastFMClient {
         if (response.hasOwnProperty('error')) {
             return {
                 error: true,
-                response: response
+                response
             }
         }
 
@@ -179,6 +179,7 @@ class LastFMClient {
                         }
                     )
 
+                // timeout or anything like that
                 if (topTracks.error) {
                     return null
                 }
@@ -244,31 +245,36 @@ exports.handler = async (event, context, callback) => {
     }
 
     if (similarTracks.error || !similarTracks.response.length) {
-        let similarArtists = await apiClient.getSimilarArtists(artist)
+        const getTracksFromSimilarArtists = async () => {
+            let similarArtists = await apiClient.getSimilarArtists(artist)
 
-        /**
-         * sometimes lastfm api does not return similar artists,
-         * even though they are displayed on the web page of artist
-         * let's grab html
-         */
-        if (similarArtists.error || !similarArtists.length) {
-            const htmlClient = new LastFMHTMLClient()
-            similarArtists = await htmlClient.getSimilarArtists(artist)
-        }
+            if (similarArtists.error) {
+                // artist not found
+                if (similarArtists.response.error === apiClient.ERROR_INVALID_PARAM) {
+                    return []
+                }
 
-        // if no similar artists fetch top tracks for artist
-        if (similarArtists.error || !similarArtists.response.length) {
-            const topTracks = await apiClient.getTopTracks(artist)
-            if (topTracks.error) {
-                response = []
-            } else {
-                response = topTracks.response
+                /**
+                 * sometimes lastfm api does not return similar artists,
+                 * even though they are displayed on the web page of artist
+                 * let's grab html
+                 */
+                const htmlClient = new LastFMHTMLClient()
+                similarArtists = await htmlClient.getSimilarArtists(artist)
+
+                // if no similar artists even from html response fetch top tracks for artist
+                if (similarArtists.error) {
+                    const topTracks = await apiClient.getTopTracks(artist)
+                    return topTracks.error ? [] : topTracks.response
+                }
             }
-        } else {
+
             const randomArtists = shuffle(similarArtists.response.slice(0, 30))
             let tracks = await apiClient.getRandomTopTracks(randomArtists, 4)
-            response = tracks.filter(track => track)
+            return tracks.filter(track => track)
         }
+
+        response = await getTracksFromSimilarArtists()
     }
 
     // filter from unwanted
