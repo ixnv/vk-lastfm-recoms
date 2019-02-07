@@ -51,15 +51,25 @@ class LastFMClient {
         this.apiRoot = 'https://ws.audioscrobbler.com/2.0/'
     }
 
+    /**
+     * @param method string
+     * @param params object
+     * @returns {string}
+     */
     createUrl(method, params) {
+        Object.keys(params).map(function(key) {
+            params[key] = encodeURIComponent(params[key])
+        })
+
         const signedParams = Object.assign({
-            'token': this.token,
+            'api_key': this.token,
             'method': method,
-            'autocorect': 1
+            'autocorect': 1,
+            'format': 'json'
         }, params)
 
         const queryString = Object.keys(signedParams).reduce((acc, k) => {
-            acc.push(`${k}=${obj[k]}`)
+            acc.push(`${k}=${signedParams[k]}`)
             return acc
         }, []).join('&')
 
@@ -67,7 +77,12 @@ class LastFMClient {
     }
 
     async getSimilarTracks(artist, track) {
-        const response = await getContent(`${this.apiRoot}?method=track.getsimilar&autocorrect=1&artist=${artist}&track=${track}&api_key=${this.token}&format=json`)
+        const url = this.createUrl('track.getsimilar', {
+            artist,
+            track
+        })
+
+        const response = await getContent(url)
             .then(response => JSON.parse(response))
             .catch(response => response)
 
@@ -90,7 +105,11 @@ class LastFMClient {
     }
 
     async getSimilarArtists(artist) {
-        const response = await getContent(`${this.apiRoot}?method=artist.getsimilar&autocorrect=1&artist=${artist}&api_key=${this.token}&format=json`)
+        const url = this.createUrl('artist.getsimilar', {
+            artist
+        })
+
+        const response = await getContent(url)
             .then(response => JSON.parse(response))
 
         if (response.hasOwnProperty('error')) {
@@ -106,10 +125,46 @@ class LastFMClient {
         }
     }
 
+    async getTopTracks(artist) {
+        const url = this.createUrl('artist.gettoptracks', {
+            artist
+        })
+
+        return await getContent(url)
+            .catch(response => {
+                return {
+                    error: true,
+                    response: JSON.parse(response)
+                }
+            })
+            .then(response => {
+                    if (response.hasOwnProperty('error')) {
+                        return {
+                            error: true,
+                            response
+                        }
+                    }
+
+                    return {
+                        error: false,
+                        response: JSON.parse(response).toptracks.track.map(({name, artist}) => {
+                            return {
+                                artist: artist.name,
+                                track: name
+                            }
+                        })
+                    }
+                }
+            )
+    }
+
     async getRandomTopTracks(artists, chooseFrom) {
         return Promise.all(
             artists.map(async artist => {
-                const topTracks = await getContent(`${this.apiRoot}?method=artist.gettoptracks&autocorrect=1&artist=${encodeURIComponent(artist)}&api_key=${this.token}&format=json`)
+                const url = this.createUrl('artist.gettoptracks', {
+                    artist
+                })
+                const topTracks = await getContent(url)
                     .catch(response => {
                         return {
                             error: true,
@@ -165,8 +220,8 @@ exports.handler = async (event, context, callback) => {
     }
 
     let {
-        artist = encodeURIComponent(artist),
-        track = encodeURIComponent(track),
+        artist,
+        track,
         unwanted
     } = event.queryStringParameters
 
@@ -201,15 +256,23 @@ exports.handler = async (event, context, callback) => {
             similarArtists = await htmlClient.getSimilarArtists(artist)
         }
 
-        const randomArtists = shuffle(similarArtists.slice(0, 30))
-        const tracks = await apiClient.getRandomTopTracks(randomArtists, 4)
-
-        // get rid of null
-        response = tracks.filter(track => track)
+        // if no similar artists fetch top tracks for artist
+        if (similarArtists.error || !similarArtists.response.length) {
+            const topTracks = await apiClient.getTopTracks(artist)
+            if (topTracks.error) {
+                response = []
+            } else {
+                response = topTracks.response
+            }
+        } else {
+            const randomArtists = shuffle(similarArtists.response.slice(0, 30))
+            let tracks = await apiClient.getRandomTopTracks(randomArtists, 4)
+            response = tracks.filter(track => track)
+        }
     }
 
     // filter from unwanted
-    if (unwanted) {
+    if (statusCode === 200 && unwanted) {
         response = response.filter(track => unwanted.indexOf(track.artist.toLowerCase()) === -1)
     }
 
