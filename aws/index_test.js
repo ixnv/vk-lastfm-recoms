@@ -9,8 +9,8 @@ async function test(event, context, callback) {
 const event = {
     httpMethod: 'GET',
     queryStringParameters: {
-        artist: 'Sentence',
-        track: 'Azimuth',
+        artist: 'Yann Pillas',
+        track: 'Sarah\'s sleep',
         unwanted: '["Oxxxymiron"]'
     }
 }

@@ -248,7 +248,7 @@ exports.handler = async (event, context, callback) => {
         const getTracksFromSimilarArtists = async () => {
             let similarArtists = await apiClient.getSimilarArtists(artist)
 
-            if (similarArtists.error) {
+            if (similarArtists.error || !similarArtists.response.length) {
                 // artist not found
                 if (similarArtists.response.error === apiClient.ERROR_INVALID_PARAM) {
                     return []
@@ -262,15 +262,20 @@ exports.handler = async (event, context, callback) => {
                 const htmlClient = new LastFMHTMLClient()
                 similarArtists = await htmlClient.getSimilarArtists(artist)
 
-                // if no similar artists even from html response fetch top tracks for artist
+                // if there are no similar artists even from html response then fetch top tracks for artist
                 if (similarArtists.error) {
                     const topTracks = await apiClient.getTopTracks(artist)
                     return topTracks.error ? [] : topTracks.response
                 }
             }
 
+            if (similarArtists.response.length <= 3) {
+                similarArtists.response.unshift(artist)
+            }
+
             const randomArtists = shuffle(similarArtists.response.slice(0, 30))
             let tracks = await apiClient.getRandomTopTracks(randomArtists, 4)
+            // filter null tracks
             return tracks.filter(track => track)
         }
 
