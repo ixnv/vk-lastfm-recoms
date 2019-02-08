@@ -1,17 +1,120 @@
-"use strict";
+'use strict'
 
 /** global chrome */
 
 // for debugging css
 // https://github.com/lateral/chrome-extension-blogpost/compare/master...paulirish:master
 function injectStyles(url) {
-    const elem = document.createElement('link');
-    elem.rel = 'stylesheet';
-    elem.setAttribute('href', url);
-    document.body.appendChild(elem);
+    const elem = document.createElement('link')
+    elem.rel = 'stylesheet'
+    elem.setAttribute('href', url)
+    document.body.appendChild(elem)
 }
 
 injectStyles(chrome.extension.getURL('app.css'))
+
+// https://github.com/gustf/js-levenshtein
+const levenshtein = (function () {
+    function _min(d0, d1, d2, bx, ay) {
+        return d0 < d1 || d2 < d1
+            ? d0 > d2
+                ? d2 + 1
+                : d0 + 1
+            : bx === ay
+                ? d1
+                : d1 + 1
+    }
+
+    return function (a, b) {
+        if (a === b) {
+            return 0
+        }
+
+        if (a.length > b.length) {
+            var tmp = a
+            a = b
+            b = tmp
+        }
+
+        var la = a.length
+        var lb = b.length
+
+        while (la > 0 && (a.charCodeAt(la - 1) === b.charCodeAt(lb - 1))) {
+            la--
+            lb--
+        }
+
+        var offset = 0
+
+        while (offset < la && (a.charCodeAt(offset) === b.charCodeAt(offset))) {
+            offset++
+        }
+
+        la -= offset
+        lb -= offset
+
+        if (la === 0 || lb < 3) {
+            return lb
+        }
+
+        var x = 0
+        var y
+        var d0
+        var d1
+        var d2
+        var d3
+        var dd
+        var dy
+        var ay
+        var bx0
+        var bx1
+        var bx2
+        var bx3
+
+        var vector = []
+
+        for (y = 0; y < la; y++) {
+            vector.push(y + 1)
+            vector.push(a.charCodeAt(offset + y))
+        }
+
+        var len = vector.length - 1
+
+        for (; x < lb - 3;) {
+            bx0 = b.charCodeAt(offset + (d0 = x))
+            bx1 = b.charCodeAt(offset + (d1 = x + 1))
+            bx2 = b.charCodeAt(offset + (d2 = x + 2))
+            bx3 = b.charCodeAt(offset + (d3 = x + 3))
+            dd = (x += 4)
+            for (y = 0; y < len; y += 2) {
+                dy = vector[y]
+                ay = vector[y + 1]
+                d0 = _min(dy, d0, d1, bx0, ay)
+                d1 = _min(d0, d1, d2, bx1, ay)
+                d2 = _min(d1, d2, d3, bx2, ay)
+                dd = _min(d2, d3, dd, bx3, ay)
+                vector[y] = dd
+                d3 = d2
+                d2 = d1
+                d1 = d0
+                d0 = dy
+            }
+        }
+
+        for (; x < lb;) {
+            bx0 = b.charCodeAt(offset + (d0 = x))
+            dd = ++x
+            for (y = 0; y < len; y += 2) {
+                dy = vector[y]
+                vector[y] = dd = _min(dy, d0, dd, bx0, vector[y + 1])
+                d0 = dy
+            }
+        }
+
+        return dd
+    }
+})()
+
 
 class Vk {
     constructor() {
@@ -34,34 +137,49 @@ class Vk {
         }
 
         for (const track of tracks) {
-            yield await fetch("https://vk.com/al_audio.php", {
-                "credentials": "include",
-                "referrer": `https://vk.com/audios${this.userId}`,
-                "referrerPolicy": "no-referrer-when-downgrade",
-                "body": `act=section&al=1&claim=0&is_layer=0&owner_id=${this.userId}&q=${track.artist}%20${track.track}&section=search`,
-                "method": "POST",
-                "mode": "cors",
-                "headers": {
-                    "Content-Type": "application/x-www-form-urlencoded"
+            yield await fetch('https://vk.com/al_audio.php', {
+                'credentials': 'include',
+                'referrer': `https://vk.com/audios${this.userId}`,
+                'referrerPolicy': 'no-referrer-when-downgrade',
+                'body': `act=section&al=1&claim=0&is_layer=0&owner_id=${this.userId}&q=${track.artist}%20${track.track}&section=search`,
+                'method': 'POST',
+                'mode': 'cors',
+                'headers': {
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }
             }).then(
-                async stream => {
-                    return stream.arrayBuffer().then((data) => {
-                        return (new TextDecoder('windows-1251')).decode(data)
-                    })
-                }
+                // decode to utf-8
+                async body => body.arrayBuffer().then(data => (new TextDecoder('windows-1251')).decode(data))
             ).then(response => {
                 // in the beginning of response body there is VK specific non-html junk, trim it
-                const pos = response.search('<div')
-                const result = response.substring(pos)
-
                 const html = document.createElement('html')
-                html.innerHTML = result
+                html.innerHTML = response.substring(response.search('<div'))
 
-                // TODO: filter by artist name
-                const node = html.querySelector('.audio_row')
-                if (node) {
-                    return node
+                const audioRows = html.querySelectorAll('.audio_row')
+
+                const distances = {}
+
+                // filter by artist name, bc VK searches by entry not linearly
+                for (const audioRow of audioRows) {
+                    const audioRowInfo = audioRow.children[0].children[6].children[0]
+                    const performer = audioRowInfo.children[0].textContent.trim().toLowerCase()
+                    const search = track.artist.toLowerCase()
+
+                    const distance = levenshtein(search, performer)
+                    if (!distances.hasOwnProperty(distance + '')) {
+                        distances[distance] = audioRow
+                    }
+
+                    // if (~performer.toLowerCase().search(track.artist.toLowerCase())) {
+                    //     return node
+                    // }
+                }
+
+                // debugger
+
+                const minDistanceIndex = Math.min.apply(null, Object.keys(distances).map(x => +x)) + ''
+                if (distances.hasOwnProperty(minDistanceIndex)) {
+                    return distances[minDistanceIndex]
                 }
 
                 return null
@@ -72,15 +190,17 @@ class Vk {
     // copied from vk sources
     cancelEvent(e) {
         if (!(e = e || window.event))
-            return !1
+            return false
+
         for (; e.originalEvent;)
             e = e.originalEvent
+
         return e.preventDefault && e.preventDefault(),
         e.stopPropagation && e.stopPropagation(),
         e.stopImmediatePropagation && e.stopImmediatePropagation(),
-            e.cancelBubble = !0,
-            e.returnValue = !1,
-            !1
+            e.cancelBubble = true,
+            e.returnValue = false,
+            false
     }
 }
 
@@ -117,22 +237,57 @@ class Templates {
         `
 
         wrapper.innerHTML = `
-            <div class="${this.ns}-backdrop"></div>
-            <div id="${this.ns}-result-dialog">
-                <h3 class="${this.ns}-result-dialog__info">Похожие на <strong class="${this.ns}-track"></strong></h3>
-                <div class="${this.ns}-result-dialog__more-btn" data-more="[]">
-                    <a>Еще</a>
+            <div class="${this.ns}-result-min">
+                <div style="float: right;margin: 5px 7px 0 0;">
+                    <div class="${this.ns}-result-min__actions ${this.ns}-result-min__maximize">
+                    <svg class="videoplayer_btn_icon videoplayer_expand_icon" viewBox="729 480 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                        <path d="M729 481.994c0-1.1.895-1.994 1.994-1.994h12.012c1.1 0 1.994.895 1.994 1.994v12.012c0 1.1-.895 1.994-1.994 1.994h-12.012c-1.1 0-1.994-.895-1.994-1.994v-12.012zm2 4.004c0-.55.456-.998 1.002-.998h9.996c.553 0 1.002.446 1.002.998v7.004c0 .55-.456.998-1.002.998h-9.996c-.553 0-1.002-.446-1.002-.998v-7.004z" fill="#9aa1ad" fill-rule="evenodd"></path>
+                    </svg>
+                    </div>
+                    <div class="${this.ns}-result-min__actions ${this.ns}-result-min__close ${this.ns}-closable"></div>
                 </div>
-                ${loader}
-                <div class="${this.ns}-result-list"></div>
-                <div class="${this.ns}-not-found">Ничего не найдено</div>
+                <div class="clearfix"></div>
+                <div class="${this.ns}-result-min__info">
+                    Похожие на <strong class="${this.ns}-track"></strong>
+                </div>
+            </div>
+
+            <div class="${this.ns}-backdrop ${this.ns}-closable"></div>
+
+            <div id="${this.ns}-result-dialog" tabindex="0">
+                <div class="${this.ns}-result-dialog__content">
+                    <h3 class="${this.ns}-result-dialog__info">Похожие на <strong class="${this.ns}-track"></strong></h3>
+                    <div class="${this.ns}-result-dialog__more-btn" data-more="[]">
+                        <a>Еще</a>
+                    </div>
+                    ${loader}
+                    <div class="${this.ns}-result-list"></div>
+                    <div class="${this.ns}-not-found">Ничего не найдено</div>
+                </div>
+                <div class="${this.ns}-result-dialog__actions ${this.ns}-close-btn ${this.ns}-closable"></div>
+                <div class="${this.ns}-result-dialog__actions ${this.ns}-minimize-btn"></div>
             </div>
          `
 
-        document.querySelector(`.${this.ns}-backdrop`).addEventListener('click', (e) => {
+        document.querySelectorAll(`.${this.ns}-closable`).forEach(node => node.addEventListener('click', () => {
+            document.querySelector(`.${this.ns}-backdrop`).style.display = 'none'
+            document.querySelector(`.${this.ns}-result-min`).style.display = 'none'
+            document.querySelector(`.${this.ns}-result-list`).innerHTML = ''
+            this.getDialogNode().style.display = 'none'
+            this.unsetMoreTracks()
+        }))
+
+        document.querySelector(`.${this.ns}-minimize-btn`).addEventListener('click', () => {
+            document.querySelector(`.${this.ns}-result-min`).style.display = 'block'
             document.querySelector(`.${this.ns}-backdrop`).style.display = 'none'
             this.getDialogNode().style.display = 'none'
-        }, true)
+        })
+
+        document.querySelector(`.${this.ns}-result-min__maximize`).addEventListener('click', () => {
+            document.querySelector(`.${this.ns}-result-min`).style.display = 'none'
+            document.querySelector(`.${this.ns}-backdrop`).style.display = 'block'
+            this.getDialogNode().style.display = 'block'
+        })
     }
 
     getDialogNode() {
@@ -160,12 +315,19 @@ class Templates {
     }
 
     setResultInfo(artist, track) {
-        document.querySelector(`.${this.ns}-track`).textContent = `${decodeURIComponent(artist)} - ${decodeURIComponent(track)}`
+        document.querySelectorAll(`.${this.ns}-track`).forEach(
+            node => node.textContent = `${decodeURIComponent(artist)} - ${decodeURIComponent(track)}`
+        )
     }
 
     setMoreTracks(moreTracks) {
         const moreTracksButton = document.querySelector(`.${this.ns}-result-dialog__more-btn`)
         moreTracksButton.dataset.more = JSON.stringify(moreTracks)
+    }
+
+    unsetMoreTracks() {
+        const moreTracksButton = document.querySelector(`.${this.ns}-result-dialog__more-btn`)
+        moreTracksButton.dataset.more = JSON.stringify([])
     }
 
     clearResult() {
@@ -206,6 +368,11 @@ async function init() {
     const vkClient = new Vk()
     const recommedationsApi = new RecommedationsApi()
     const templates = new Templates('vkappext')
+
+    // avoid render on any non-UI pages (.png, .jpg, etc)
+    if (vkClient.getUserId() === null) {
+        return false
+    }
 
     templates.render()
 
@@ -286,7 +453,7 @@ async function init() {
         }, 100)
     })
 
-    document.body.querySelector(`.${templates.ns}-result-dialog__more-btn`).addEventListener('click', async (e) => {
+    document.querySelector(`.${templates.ns}-result-dialog__more-btn`).addEventListener('click', async (e) => {
         templates.showLoader()
         templates.clearResult()
 
