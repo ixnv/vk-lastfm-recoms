@@ -4,7 +4,7 @@ const JSDOM = require('jsdom').JSDOM
 const getContent = async (url) => {
     return new Promise((resolve, reject) => {
         const request = require('https').get(url, (response) => {
-            const body = [];
+            const body = []
 
             response.on('data', (chunk) => body.push(chunk))
 
@@ -215,7 +215,7 @@ exports.handler = async (event, context, callback) => {
             statusCode: 405,
             body: JSON.stringify({'error': 'not allowed'}),
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             }
         })
     }
@@ -277,8 +277,9 @@ exports.handler = async (event, context, callback) => {
                 tracks = topTracks.error ? [] : topTracks.response
             }
 
-            const randomArtists = shuffle(similarArtists.response.slice(0, 30))
-            tracks.unshift.apply(await apiClient.getRandomTopTracks(randomArtists, 4))
+            const randomArtists = shuffle(similarArtists.response.slice(0, 40))
+            const randomTopTracks = await apiClient.getRandomTopTracks(randomArtists, 4)
+            tracks.unshift.apply(tracks, randomTopTracks)
             // filter null tracks
             return tracks.filter(track => track)
         }
@@ -288,7 +289,12 @@ exports.handler = async (event, context, callback) => {
 
     // filter from unwanted
     if (statusCode === 200 && unwanted) {
-        response = response.filter(track => unwanted.indexOf(track.artist.toLowerCase()) === -1)
+        response = response.filter(track =>
+            track.artist
+                .split(' ')
+                .map(featuredArtist => unwanted.indexOf(featuredArtist.toLowerCase()) === -1)
+                .reduce((x, acc) => acc &= x)
+        )
     }
 
     callback(null, {
