@@ -176,8 +176,6 @@ class Vk {
                     }
                 }
 
-                // debugger
-
                 const minDistanceIndex = Math.min.apply(null, Object.keys(distances).map(x => +x)) + ''
                 if (distances.hasOwnProperty(minDistanceIndex)) {
                     return distances[minDistanceIndex]
@@ -212,9 +210,29 @@ class RecommedationsApi {
 
     async getTracks(artist, track) {
         return await fetch(`${this.apiRoot}/similar-tracks?artist=${(artist)}&track=${(track)}&unwanted=["Oxxxymiron"]`)
-            .then(r => r.json())
-            .then(response => response)
-            .catch(r => [])
+            .then(response => {
+                if (response.status !== 200) {
+                    throw response
+                }
+
+                try {
+                    return response.json()
+                } catch (e) {
+                    // could not parse
+                    throw e
+                }
+            })
+            .then(response => ({
+                error: false,
+                response
+            }))
+            .catch(response => {
+                console.error(response)
+                return {
+                    error: true,
+                    response
+                }
+            })
     }
 }
 
@@ -265,7 +283,11 @@ class Templates {
                     </button>
                     ${loader}
                     <div class="${this.ns}-result-list"></div>
-                    <div class="${this.ns}-not-found">Ничего не найдено</div>
+                    <div class="${this.ns}-not-found">Похожих аудиозаписей не найдено</div>
+                    <div class="${this.ns}-error">
+                        <div>Произошла ошибка</div>
+                        <button class="flat_button ${this.ns}-error__try-btn">Попробовать заново</button>
+                    </div>
                 </div>
                 <div class="${this.ns}-result-dialog__actions ${this.ns}-close-btn ${this.ns}-closable"></div>
                 <div class="${this.ns}-result-dialog__actions ${this.ns}-minimize-btn"></div>
@@ -273,6 +295,7 @@ class Templates {
          `
 
         document.querySelectorAll(`.${this.ns}-closable`).forEach(node => node.addEventListener('click', () => {
+            this.hideError()
             this.hideBackdrop()
             this.clearResult()
 
@@ -392,6 +415,18 @@ class Templates {
         this.show(this.getDialogNode())
     }
 
+    showError(artist, track) {
+        const tryAgainButton = document.querySelector(`.${this.ns}-error button`)
+        tryAgainButton.dataset.artist = artist
+        tryAgainButton.dataset.track = track
+
+        this.show(document.querySelector(`.${this.ns}-error`))
+    }
+
+    hideError() {
+        this.hide(document.querySelector(`.${this.ns}-error`))
+    }
+
     hide(element) {
         element.style.display = 'none'
     }
@@ -445,8 +480,15 @@ async function init() {
     }
 
     const findTracks = async (artist, track) => {
-        const similarTracks = await recommedationsApi.getTracks(artist, track)
+        const similarTracksResponse = await recommedationsApi.getTracks(artist, track)
 
+        if (similarTracksResponse.error) {
+            templates.hideLoader()
+            templates.showError(artist, track)
+            return
+        }
+
+        const similarTracks = similarTracksResponse.response
         const tracksForOnePage = similarTracks.slice(0, PAGE_SIZE)
         const moreTracks = similarTracks.slice(PAGE_SIZE)
 
@@ -482,6 +524,8 @@ async function init() {
             const div = document.createElement('div')
             div.innerHTML = `<a id="${buttonId}" data-artist="${artist}" data-track="${track}" class="${btnClass} audio_row__action"></a>`
             actions.appendChild(div.firstChild)
+
+            // attach event listener right here, bc element gets destroyed
             document.querySelector(`#${buttonId}`).addEventListener('click', async (event) => {
                 vkClient.cancelEvent(event)
 
@@ -512,6 +556,17 @@ async function init() {
 
         templates.setMoreTracks(more.slice(PAGE_SIZE))
         await searchVkTracks(more.slice(0, PAGE_SIZE))
+    })
+
+    document.querySelector(`.${templates.ns}-error__try-btn`).addEventListener('click', async (event) => {
+        templates.hideError()
+
+        const {target} = event
+        const {artist, track} = target.dataset
+
+        templates.hideMinResult()
+        templates.openDialog(artist, track)
+        await findTracks(artist, track)
     })
 }
 

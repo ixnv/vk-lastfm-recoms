@@ -23,7 +23,7 @@
     display: none;
     position: fixed;
     z-index: 1000;
-    top: 30%;
+    top: 20%;
     left: 35.4%;
     width: 530px;
     padding: 15px;
@@ -103,6 +103,17 @@
     text-align: center;
     height: 10em;
     line-height: 10em;
+}
+
+.vkappext-error {
+    display: none;
+    text-align: center;
+    height: 10em;
+    padding: 5em 0 0 0;
+}
+
+.vkappext-error__try-btn {
+    margin-top: 5px;
 }
 
 .vkappext-loader {
