@@ -269,12 +269,16 @@ exports.handler = async (event, context, callback) => {
                 }
             }
 
+            let tracks = []
+
+            // if there's not so many similar artists, return artist as well
             if (similarArtists.response.length <= 3) {
-                similarArtists.response.unshift(artist)
+                const topTracks = await apiClient.getTopTracks(artist)
+                tracks = topTracks.error ? [] : topTracks.response
             }
 
             const randomArtists = shuffle(similarArtists.response.slice(0, 30))
-            let tracks = await apiClient.getRandomTopTracks(randomArtists, 4)
+            tracks.unshift.apply(await apiClient.getRandomTopTracks(randomArtists, 4))
             // filter null tracks
             return tracks.filter(track => track)
         }
