@@ -1,9 +1,10 @@
 const fetch = require('node-fetch')
 const JSDOM = require('jsdom').JSDOM
+const https = require('https')
 
 const getContent = async (url) => {
     return new Promise((resolve, reject) => {
-        const request = require('https').get(url, (response) => {
+        const request = https.get(url, (response) => {
             const body = []
 
             response.on('data', (chunk) => body.push(chunk))

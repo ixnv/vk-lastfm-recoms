@@ -165,14 +165,15 @@ class Vk {
                     const performer = audioRowInfo.children[0].textContent.trim().toLowerCase()
                     const search = track.artist.toLowerCase()
 
+                    /**
+                     * use levenshtein algorithm for filtering artists
+                     * because sometimes VK gives you completely non-related tracks in search results
+                     * ex. search for "Skin Area - In the Skin" first result would be "Linkin Park & Eminem - Skin to Bone"
+                     */
                     const distance = levenshtein(search, performer)
                     if (!distances.hasOwnProperty(distance + '')) {
                         distances[distance] = audioRow
                     }
-
-                    // if (~performer.toLowerCase().search(track.artist.toLowerCase())) {
-                    //     return node
-                    // }
                 }
 
                 // debugger
@@ -228,11 +229,13 @@ class Templates {
         document.body.appendChild(wrapper)
 
         const loader = `
-            <div class="${this.ns}-loader lds-ellipsis">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
+            <div class="${this.ns}-loader">
+                <div class="lds-ellipsis">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>                
+                </div>
             </div>
         `
 
@@ -257,9 +260,9 @@ class Templates {
             <div id="${this.ns}-result-dialog" tabindex="0">
                 <div class="${this.ns}-result-dialog__content">
                     <h3 class="${this.ns}-result-dialog__info">Похожие на <strong class="${this.ns}-track"></strong></h3>
-                    <div class="${this.ns}-result-dialog__more-btn" data-more="[]">
-                        <a>Еще</a>
-                    </div>
+                    <button class="flat_button button_wide secondary ${this.ns}-result-dialog__more-btn" data-more="[]">
+                        Показать ещё
+                    </button>
                     ${loader}
                     <div class="${this.ns}-result-list"></div>
                     <div class="${this.ns}-not-found">Ничего не найдено</div>
@@ -270,23 +273,25 @@ class Templates {
          `
 
         document.querySelectorAll(`.${this.ns}-closable`).forEach(node => node.addEventListener('click', () => {
-            document.querySelector(`.${this.ns}-backdrop`).style.display = 'none'
-            document.querySelector(`.${this.ns}-result-min`).style.display = 'none'
-            document.querySelector(`.${this.ns}-result-list`).innerHTML = ''
-            this.getDialogNode().style.display = 'none'
+            this.hideBackdrop()
+            this.clearResult()
+
+            this.hideMinResult()
+            this.hideDialogResult()
             this.unsetMoreTracks()
         }))
 
         document.querySelector(`.${this.ns}-minimize-btn`).addEventListener('click', () => {
-            document.querySelector(`.${this.ns}-result-min`).style.display = 'block'
-            document.querySelector(`.${this.ns}-backdrop`).style.display = 'none'
-            this.getDialogNode().style.display = 'none'
+            this.showMinResult()
+            this.hideBackdrop()
+            this.hideDialogResult()
         })
 
         document.querySelector(`.${this.ns}-result-min__maximize`).addEventListener('click', () => {
-            document.querySelector(`.${this.ns}-result-min`).style.display = 'none'
-            document.querySelector(`.${this.ns}-backdrop`).style.display = 'block'
-            this.getDialogNode().style.display = 'block'
+            this.hideMinResult()
+            this.hideMinResult()
+            this.showBackdrop()
+            this.showDialogResult()
         })
     }
 
@@ -295,12 +300,12 @@ class Templates {
     }
 
     openDialog(artist, track) {
-        this.showBackground()
+        this.showBackdrop()
 
         const dialog = this.getDialogNode()
 
         if (dialog.style.display === 'block') {
-            dialog.style.display = 'none'
+            this.hide(dialog)
         }
 
         this.hideNotFoundResult()
@@ -340,25 +345,59 @@ class Templates {
     }
 
     showLoader() {
-        const loader = document.querySelector(`.${this.ns}-loader`)
-        loader.style.display = 'block'
-    }
-
-    showBackground() {
-        document.querySelector(`.${this.ns}-backdrop`).style.display = 'block'
+        this.show(document.querySelector(`.${this.ns}-loader`))
     }
 
     hideLoader() {
-        const loader = document.querySelector(`.${this.ns}-loader`)
-        loader.style.display = 'none'
+        this.hide(document.querySelector(`.${this.ns}-loader`))
+    }
+
+    showMoreButton() {
+        this.show(document.querySelector(`.${this.ns}-result-dialog__more-btn`))
+    }
+
+    hideMoreButton() {
+        this.hide(document.querySelector(`.${this.ns}-result-dialog__more-btn`))
+    }
+
+    showBackdrop() {
+        this.show(document.querySelector(`.${this.ns}-backdrop`))
+    }
+
+    hideBackdrop() {
+        this.hide(document.querySelector(`.${this.ns}-backdrop`))
     }
 
     showNotFoundResult() {
-        document.querySelector(`.${this.ns}-not-found`).style.display = 'block'
+        this.show(document.querySelector(`.${this.ns}-not-found`))
     }
 
     hideNotFoundResult() {
-        document.querySelector(`.${this.ns}-not-found`).style.display = 'none'
+        this.hide(document.querySelector(`.${this.ns}-not-found`))
+    }
+
+    showMinResult() {
+        this.show(document.querySelector(`.${this.ns}-result-min`))
+    }
+
+    hideMinResult() {
+        this.hide(document.querySelector(`.${this.ns}-result-min`))
+    }
+
+    hideDialogResult() {
+        this.hide(this.getDialogNode())
+    }
+
+    showDialogResult() {
+        this.show(this.getDialogNode())
+    }
+
+    hide(element) {
+        element.style.display = 'none'
+    }
+
+    show(element) {
+        element.style.display = 'block'
     }
 }
 
@@ -388,6 +427,7 @@ async function init() {
 
             if (iter.done) {
                 templates.hideLoader()
+                templates.showMoreButton()
                 break
             }
 
@@ -447,6 +487,8 @@ async function init() {
 
                 const {target} = event
                 const {artist, track} = target.dataset
+
+                templates.hideMinResult()
                 templates.openDialog(artist, track)
                 await findTracks(artist, track)
             })
@@ -455,9 +497,10 @@ async function init() {
 
     document.querySelector(`.${templates.ns}-result-dialog__more-btn`).addEventListener('click', async (e) => {
         templates.showLoader()
+        templates.hideMoreButton()
         templates.clearResult()
 
-        const more = JSON.parse(e.target.closest('div').dataset.more)
+        const more = JSON.parse(e.target.dataset.more)
 
         if (!more.length) {
             const {artist, track} = dialog.dataset
