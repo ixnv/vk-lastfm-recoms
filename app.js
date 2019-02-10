@@ -171,8 +171,12 @@ class Vk {
                      * ex. search for "Skin Area - In the Skin" first result would be "Linkin Park & Eminem - Skin to Bone"
                      */
                     const distance = levenshtein(search, performer)
-                    if (!distances.hasOwnProperty(distance + '')) {
+                    if (!distances.hasOwnProperty(distance)) {
                         distances[distance] = audioRow
+
+                        if (distance === 0) {
+                            break
+                        }
                     }
                 }
 
@@ -261,9 +265,9 @@ class Templates {
             <div class="${this.ns}-result-min">
                 <div style="float: right;margin: 5px 7px 0 0;">
                     <div class="${this.ns}-result-min__actions ${this.ns}-result-min__maximize">
-                    <svg class="videoplayer_btn_icon videoplayer_expand_icon" viewBox="729 480 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                        <path d="M729 481.994c0-1.1.895-1.994 1.994-1.994h12.012c1.1 0 1.994.895 1.994 1.994v12.012c0 1.1-.895 1.994-1.994 1.994h-12.012c-1.1 0-1.994-.895-1.994-1.994v-12.012zm2 4.004c0-.55.456-.998 1.002-.998h9.996c.553 0 1.002.446 1.002.998v7.004c0 .55-.456.998-1.002.998h-9.996c-.553 0-1.002-.446-1.002-.998v-7.004z" fill="#9aa1ad" fill-rule="evenodd"></path>
-                    </svg>
+                        <svg class="videoplayer_btn_icon videoplayer_expand_icon" viewBox="729 480 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <path d="M729 481.994c0-1.1.895-1.994 1.994-1.994h12.012c1.1 0 1.994.895 1.994 1.994v12.012c0 1.1-.895 1.994-1.994 1.994h-12.012c-1.1 0-1.994-.895-1.994-1.994v-12.012zm2 4.004c0-.55.456-.998 1.002-.998h9.996c.553 0 1.002.446 1.002.998v7.004c0 .55-.456.998-1.002.998h-9.996c-.553 0-1.002-.446-1.002-.998v-7.004z" fill="#9aa1ad" fill-rule="evenodd"></path>
+                        </svg>
                     </div>
                     <div class="${this.ns}-result-min__actions ${this.ns}-result-min__close ${this.ns}-closable"></div>
                 </div>
@@ -334,6 +338,7 @@ class Templates {
         this.hideNotFoundResult()
         this.clearResult()
         this.setResultInfo(artist, track)
+        this.hideMoreButton()
         this.showLoader()
 
         dialog.dataset.artist = artist
@@ -462,7 +467,6 @@ async function init() {
 
             if (iter.done) {
                 templates.hideLoader()
-                templates.showMoreButton()
                 break
             }
 
@@ -475,7 +479,10 @@ async function init() {
         }
 
         if (!foundAny) {
+            templates.hideMoreButton()
             templates.showNotFoundResult(dialog)
+        } else {
+            templates.showMoreButton()
         }
     }
 
@@ -567,6 +574,19 @@ async function init() {
         templates.hideMinResult()
         templates.openDialog(artist, track)
         await findTracks(artist, track)
+    })
+
+    // vk intercepts keypress and keydown (?) use keyup instead
+    window.addEventListener('keyup', ({key}) => {
+        if (key === 'Escape' && templates.getDialogNode().style.display === 'block') {
+            templates.hideError()
+            templates.hideBackdrop()
+            templates.clearResult()
+
+            templates.hideMinResult()
+            templates.hideDialogResult()
+            templates.unsetMoreTracks()
+        }
     })
 }
 
