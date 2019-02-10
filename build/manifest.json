@@ -1,22 +1,29 @@
-
 {
   "name": "VK - рекомендации аудио из LastFM",
-  "description" : "Показывает рекомендации сервиса Last FM для аудиозаписей VK",
-  "version": "1.0",
+  "description": "Показывает рекомендации сервиса Last FM для аудиозаписей VK",
+  "version": "1.1",
   "manifest_version": 2,
-  "browser_action": {
-    "default_title": "LastFM similar artists in VK",
-    "default_icon": "icon.png"
-  },
   "permissions": [
     "storage",
-    "https://vk.com/*"
+    "https://vk.com/*",
+    "https://hblah41x5a.execute-api.eu-central-1.amazonaws.com/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://vk.com/*"],
-      "css": ["app.css"],
-      "js": ["app.js"]
+      "matches": [
+        "https://vk.com/*"
+      ],
+      "css": [
+        "app.css"
+      ],
+      "js": [
+        "app.js"
+      ]
     }
-  ]
+  ],
+  "icons": {
+    "16": "icon_16.png",
+    "48": "icon_48.png",
+    "128": "icon_128.png"
+  }
 }

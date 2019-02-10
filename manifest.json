@@ -12,7 +12,8 @@
     "activeTab",
     "debugger",
     "storage",
-    "https://vk.com/*"
+    "https://vk.com/*",
+    "https://hblah41x5a.execute-api.eu-central-1.amazonaws.com/*"
   ],
   "web_accessible_resources" : ["app.css"],
   "content_scripts": [
@@ -22,6 +23,11 @@
       "js": ["app.js"]
     }
   ],
+  "icons": {
+    "16": "icon_16.png",
+    "48": "icon_48.png",
+    "128": "icon_128.png"
+  },
   "background": {
     "persistent": false,
     "scripts": ["hot-reload.js"]
