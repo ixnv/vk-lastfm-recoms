@@ -24,7 +24,8 @@
     position: fixed;
     z-index: 1000;
     top: 20%;
-    left: 35.4%;
+    left: 50%;
+    transform: translateX(-50%);
     width: 530px;
     padding: 15px;
     background-color: white;
@@ -37,10 +38,12 @@
 
 .vkappext-result-dialog__more-btn {
     display: none;
-    padding: 10px 0;
-    text-align: center;
-    cursor: pointer;
-    margin-bottom: 10px;
+    margin-bottom: 10px !important;
+}
+
+.vkappext-result-dialog__more-btn:active {
+    /** remain the same to avoid flickering **/
+    padding: 8px 3px 7px !important;
 }
 
 .vkappext-result-dialog__actions {
@@ -64,6 +67,7 @@
 .vkappext-minimize-btn {
     background: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D%2236%22%20height%3D%2236%22%20viewBox%3D%220%200%2036%2036%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20clip-path%3D%22url(%23clip0)%22%3E%3Cpath%20d%3D%22M6.0796%2025.2444L29.1178%2025.3331C29.8215%2025.2749%2030.4589%2024.6681%2030.52%2023.9982C30.4532%2023.3277%2029.8107%2022.716%2029.1065%2022.6524L6.06825%2022.5637C5.36456%2022.6219%204.72719%2023.2287%204.66605%2023.8986C4.73289%2024.569%205.3754%2025.1807%206.0796%2025.2444Z%22%20fill%3D%22white%22%2F%3E%3C%2Fg%3E%3Cdefs%3E%3CclipPath%20id%3D%22clip0%22%3E%3Crect%20width%3D%2236%22%20height%3D%2236%22%20fill%3D%22white%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3C%2Fsvg%3E") no-repeat 50%;
     top: 40px;
+    height: 30px; /** too lazy to redraw svg **/
 }
 
 .vkappext-result-min {
@@ -74,7 +78,7 @@
     max-width: 300px;
     height: 65px;
     border-radius: 3px;
-    background: #e9edf1;
+    background: #fff;
     border: 1px solid #e6edf5;
     box-shadow: 0 0 5px 0 #597da3;
 }
@@ -121,10 +125,6 @@
     margin-bottom: 10px;
 }
 
-.vkappext-result-dialog__more-btn:active {
-    padding: 10px 3px;
-}
-
 /* https://loading.io/css/ */
 
 .lds-ellipsis {
@@ -145,21 +145,25 @@
 }
 
 .lds-ellipsis div:nth-child(1) {
+    will-change: transform;
     left: 6px;
     animation: lds-ellipsis1 0.6s infinite;
 }
 
 .lds-ellipsis div:nth-child(2) {
+    will-change: transform;
     left: 6px;
     animation: lds-ellipsis2 0.6s infinite;
 }
 
 .lds-ellipsis div:nth-child(3) {
+    will-change: transform;
     left: 26px;
     animation: lds-ellipsis2 0.6s infinite;
 }
 
 .lds-ellipsis div:nth-child(4) {
+    will-change: transform;
     left: 45px;
     animation: lds-ellipsis3 0.6s infinite;
 }
