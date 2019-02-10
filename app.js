@@ -166,7 +166,7 @@ class Vk {
                     const search = track.artist.toLowerCase()
 
                     /**
-                     * use levenshtein algorithm for filtering artists
+                     * use levenshtein distance for filtering artists
                      * because sometimes VK gives you completely non-related tracks in search results
                      * ex. search for "Skin Area - In the Skin" first result would be "Linkin Park & Eminem - Skin to Bone"
                      */
@@ -326,6 +326,10 @@ class Templates {
         return document.querySelector(`#${this.ns}-result-dialog`)
     }
 
+    isDialogVisible() {
+        return this.getDialogNode().style.display === 'block'
+    }
+
     openDialog(artist, track) {
         this.showBackdrop()
 
@@ -404,6 +408,14 @@ class Templates {
         this.hide(document.querySelector(`.${this.ns}-not-found`))
     }
 
+    getResultMinNode() {
+        return document.querySelector(`.${this.ns}-result-min`)
+    }
+
+    isResultMinVisible() {
+        return this.getResultMinNode().style.display === 'block'
+    }
+
     showMinResult() {
         this.show(document.querySelector(`.${this.ns}-result-min`))
     }
@@ -465,7 +477,7 @@ async function init() {
         while (true) {
             const iter = await search.next()
 
-            if (iter.done) {
+            if (iter.done || (!templates.isDialogVisible() && !templates.isResultMinVisible())) {
                 templates.hideLoader()
                 break
             }
@@ -529,10 +541,10 @@ async function init() {
             const track = encodeURIComponent(audioRow.querySelector('.audio_row__title_inner').textContent)
             const buttonId = `${templates.ns}-find-similar`
             const div = document.createElement('div')
-            div.innerHTML = `<a id="${buttonId}" data-artist="${artist}" data-track="${track}" class="${btnClass} audio_row__action"></a>`
+            div.innerHTML = `<a id="${buttonId}" data-artist="${artist}" data-track="${track}" class="${btnClass} audio_row__action" title="Показать похожие из Last FM"></a>`
             actions.appendChild(div.firstChild)
 
-            // attach event listener right here, bc element gets destroyed
+            // attach event listener right here, bc element gets deleted after mouseout
             document.querySelector(`#${buttonId}`).addEventListener('click', async (event) => {
                 vkClient.cancelEvent(event)
 
@@ -543,7 +555,7 @@ async function init() {
                 templates.openDialog(artist, track)
                 await findTracks(artist, track)
             })
-        }, 100)
+        }, 10)
     })
 
     document.querySelector(`.${templates.ns}-result-dialog__more-btn`).addEventListener('click', async (e) => {
@@ -578,7 +590,7 @@ async function init() {
 
     // vk intercepts keypress and keydown (?) use keyup instead
     window.addEventListener('keyup', ({key}) => {
-        if (key === 'Escape' && templates.getDialogNode().style.display === 'block') {
+        if (key === 'Escape' && templates.isDialogVisible()) {
             templates.hideError()
             templates.hideBackdrop()
             templates.clearResult()

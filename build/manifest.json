@@ -1,7 +1,7 @@
 {
   "name": "VK - рекомендации аудио из LastFM",
   "description": "Показывает рекомендации сервиса Last FM для аудиозаписей VK",
-  "version": "1.1",
+  "version": "1.3",
   "manifest_version": 2,
   "permissions": [
     "storage",
