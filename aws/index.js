@@ -2,6 +2,7 @@ const fetch = require('node-fetch')
 const JSDOM = require('jsdom').JSDOM
 const https = require('https')
 
+// TODO: switch to fetch
 const getContent = async (url) => {
     return new Promise((resolve, reject) => {
         const request = https.get(url, (response) => {
@@ -77,21 +78,48 @@ class LastFMClient {
         return `${this.apiRoot}?${queryString}`
     }
 
-    async getSimilarTracks(artist, track) {
+    async request(method, params) {
         const url = this.createUrl('track.getsimilar', {
             artist,
             track
         })
 
-        const response = await getContent(url)
-            .then(response => JSON.parse(response))
-            .catch(response => response)
+        return await fetch(url)
+            .then(response => {
+                if (response.status !== 200) {
+                    throw response
+                }
 
-        if (response.hasOwnProperty('error')) {
-            return {
+                try {
+                    return response.json()
+                } catch (e) {
+                    throw response
+                }
+            })
+            .then(response => {
+                if (response.hasOwnProperty('error')) {
+                    throw response
+                }
+
+                return {
+                    error: false,
+                    response
+                }
+            })
+            .catch(response => ({
                 error: true,
-                response: response
-            }
+                response
+            }))
+    }
+
+    async getSimilarTracks(artist, track) {
+        const response = await this.request('track.getsimilar', {
+            artist,
+            track
+        })
+
+        if (response) {
+
         }
 
         return {

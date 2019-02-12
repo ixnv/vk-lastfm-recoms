@@ -180,9 +180,10 @@ class Vk {
                     }
                 }
 
-                const minDistanceIndex = Math.min.apply(null, Object.keys(distances).map(x => +x)) + ''
-                if (distances.hasOwnProperty(minDistanceIndex)) {
-                    return distances[minDistanceIndex]
+                const minDistance = Math.min(...Object.keys(distances).map(x => +x))
+                // Math.min returns Infinity on []
+                if (minDistance !== Infinity && minDistance < track.artist.length) {
+                    return distances[minDistance]
                 }
 
                 return null
@@ -213,7 +214,7 @@ class RecommedationsApi {
     }
 
     async getTracks(artist, track) {
-        return await fetch(`${this.apiRoot}/similar-tracks?artist=${(artist)}&track=${(track)}&unwanted=["Oxxxymiron"]`)
+        return await fetch(`${this.apiRoot}/similar-tracks?artist=${artist}&track=${track}&unwanted=["Oxxxymiron"]`)
             .then(response => {
                 if (response.status !== 200) {
                     throw response
