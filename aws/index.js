@@ -78,11 +78,8 @@ class LastFMClient {
         return `${this.apiRoot}?${queryString}`
     }
 
-    async request(method, params) {
-        const url = this.createUrl('track.getsimilar', {
-            artist,
-            track
-        })
+    async request(resource, params) {
+        const url = this.createUrl(resource, params)
 
         return await fetch(url)
             .then(response => {
@@ -112,113 +109,70 @@ class LastFMClient {
             }))
     }
 
+    flatMap(payload, fn) {
+        if (payload.error) {
+            return payload
+        }
+
+        return {
+            error: payload.error,
+            response: fn(payload.response)
+        }
+    }
+
     async getSimilarTracks(artist, track) {
-        const response = await this.request('track.getsimilar', {
+        const similarTracks = await this.request('track.getsimilar', {
             artist,
             track
         })
 
-        if (response) {
-
-        }
-
-        return {
-            error: false,
-            response: response.similartracks.track.map(({name, artist}) => {
+        return this.flatMap(similarTracks, (similarTracks) => {
+            return similarTracks.track.map(({name, artist}) => {
                 return {
                     artist: artist.name,
                     track: name
                 }
             })
-        }
+        })
     }
 
     async getSimilarArtists(artist) {
-        const url = this.createUrl('artist.getsimilar', {
+        const similarArtists = await this.request('artist.getsimilar', {
             artist
         })
 
-        const response = await getContent(url)
-            .then(response => JSON.parse(response))
-
-        if (response.hasOwnProperty('error')) {
-            return {
-                error: true,
-                response
-            }
-        }
-
-        return {
-            error: false,
-            response: response.similarartists.artist.map(({name}) => name)
-        }
+        return this.flatMap(similarArtists, (similarArtists) => {
+            return similarArtists.artist.map(({name}) => name)
+        })
     }
 
     async getTopTracks(artist) {
-        const url = this.createUrl('artist.gettoptracks', {
+        const topTracks = await this.request('artist.gettoptracks', {
             artist
         })
 
-        return await getContent(url)
-            .catch(response => {
-                return {
-                    error: true,
-                    response: JSON.parse(response)
-                }
-            })
-            .then(response => {
-                    if (response.hasOwnProperty('error')) {
-                        return {
-                            error: true,
-                            response
-                        }
-                    }
-
-                    return {
-                        error: false,
-                        response: JSON.parse(response).toptracks.track.map(({name, artist}) => {
-                            return {
-                                artist: artist.name,
-                                track: name
-                            }
-                        })
-                    }
-                }
+        return this.flatMap(topTracks, (topTracks) => {
+            return topTracks.track.map(({name, artist}) => ({
+                    artist: artist.name,
+                    track: name
+                })
             )
+        })
     }
 
     async getRandomTopTracks(artists, chooseFrom) {
         return Promise.all(
             artists.map(async artist => {
-                const url = this.createUrl('artist.gettoptracks', {
-                    artist
-                })
-                const topTracks = await getContent(url)
-                    .catch(response => {
-                        return {
-                            error: true,
-                            response: JSON.parse(response)
-                        }
-                    })
-                    .then(response => {
-                            return {
-                                error: false,
-                                response: JSON.parse(response).toptracks.track
-                            }
-                        }
-                    )
-
+                const topTracks = await this.getTopTracks(artist)
                 // timeout or anything like that
                 if (topTracks.error) {
                     return null
                 }
 
-                const top = topTracks.response.slice(0, chooseFrom).map(({name, artist}) => {
-                    return {
-                        artist: artist.name,
-                        track: name
-                    }
-                })
+                const top = topTracks.response.slice(0, chooseFrom).map(({name, artist}) => ({
+                    artist: artist.name,
+                    track: name
+                }))
 
                 if (!top.length) {
                     return null
