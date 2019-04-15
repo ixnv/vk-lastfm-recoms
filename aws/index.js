@@ -2,21 +2,6 @@ const fetch = require('node-fetch')
 const JSDOM = require('jsdom').JSDOM
 const https = require('https')
 
-// TODO: switch to fetch
-const getContent = async (url) => {
-    return new Promise((resolve, reject) => {
-        const request = https.get(url, (response) => {
-            const body = []
-
-            response.on('data', (chunk) => body.push(chunk))
-
-            response.on('end', () => resolve(body.join('')))
-        })
-
-        request.on('error', (err) => reject(err))
-    })
-}
-
 class LastFMHTMLClient {
     constructor() {
         this.urlRoot = 'https://www.last.fm/music'

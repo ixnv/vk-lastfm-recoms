@@ -100,8 +100,8 @@
 }
 
 .vkappext-result-min__actions > svg {
-    width: 12px;
-    height: 12px;
+    width: 12px !important;
+    height: 12px !important;
 }
 
 .vkappext-result-min__close {

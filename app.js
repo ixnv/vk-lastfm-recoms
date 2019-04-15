@@ -115,6 +115,14 @@ const levenshtein = (function () {
     }
 })()
 
+const state = {
+    ui: {
+        isMinResultOpened: false,
+        isResultDialogOpened: false
+    },
+    moreTracks: [],
+    tracks: []
+}
 
 class Vk {
     constructor() {
@@ -474,6 +482,7 @@ async function init() {
         const search = vkClient.searchAudioTracks(tracks)
 
         let foundAny = false
+        let foundCount = 0
 
         while (true) {
             const iter = await search.next()
@@ -487,8 +496,14 @@ async function init() {
 
             if (audioRow) {
                 foundAny = true
+                foundCount++
                 templates.appendAudioRow(dialog, audioRow)
             }
+        }
+
+        if (foundCount <= PAGE_SIZE) {
+            // TODO: fetch other page
+            templates.getDialogNode()
         }
 
         if (!foundAny) {
