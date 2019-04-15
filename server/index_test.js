@@ -1,6 +1,4 @@
-const handler = require("./index.js").handler
-
-// import handler from 'index'
+const { handler } = require("./index.js")
 
 async function test(event, context, callback) {
     return await handler(event, context, callback)
