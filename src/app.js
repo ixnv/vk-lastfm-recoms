@@ -115,15 +115,6 @@ const levenshtein = (function () {
     }
 })()
 
-const state = {
-    ui: {
-        isMinResultOpened: false,
-        isResultDialogOpened: false
-    },
-    moreTracks: [],
-    tracks: []
-}
-
 class Vk {
     constructor() {
         this.userId = this.getUserId()
