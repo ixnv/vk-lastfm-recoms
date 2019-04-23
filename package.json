@@ -26,6 +26,7 @@
     "react-dom": "^16.8.6"
   },
   "devDependencies": {
+    "@types/chrome": "0.0.83",
     "awesome-typescript-loader": "^5.2.1",
     "fork-ts-checker-webpack-plugin": "^1.0.2",
     "source-map-loader": "^0.2.4",
