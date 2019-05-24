@@ -1,10 +1,14 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "build/dist",
+    "outDir": "dist",
     "module": "esnext",
+    "esModuleInterop": true,
     "target": "es5",
-    "lib": ["es6", "dom"],
+    "lib": [
+      "es6",
+      "dom"
+    ],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -18,14 +22,25 @@
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
-    "incremental": true
+    "incremental": true,
+    "types": [
+      "react",
+      "react-dom",
+      "styled-components",
+      "enzyme",
+      "enzyme-adapter-react-16",
+      "enzyme-to-json",
+      "jest"
+    ]
   },
   "exclude": [
     "node_modules",
     "server",
     "config",
     "dist",
-    "build",
+    "coverage",
+    "__tests__",
+    "jest.config.js",
     "hot-reload.js"
   ]
 }
