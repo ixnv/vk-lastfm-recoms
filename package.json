@@ -5,6 +5,7 @@
   "main": "index.tsx",
   "scripts": {
     "build:dev": "webpack --config=config/webpack.config.dev.js",
+    "build": "webpack --mode production",
     "lint": "npx tslint -p .",
     "watch": "webpack --config=config/webpack.config.dev.js --watch",
     "start:dev": "webpack-dev-server",
@@ -23,6 +24,8 @@
   },
   "homepage": "https://github.com/ixnv/vk-lastfm-recoms#readme",
   "dependencies": {
+    "fp-ts": "^1.18.2",
+    "js-levenshtein": "^1.1.6",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-redux": "^7.0.3",

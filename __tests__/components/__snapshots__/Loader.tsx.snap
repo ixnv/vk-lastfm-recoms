@@ -1,0 +1,74 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<Loader/> renders without crash 1`] = `
+<styled.div
+  show={true}
+>
+  <styled.div>
+    <Styled(styled.div)
+      animation={
+        Keyframes {
+          "id": "sc-keyframes-bBWfDF",
+          "inject": [Function],
+          "name": "bBWfDF",
+          "rules": Array [
+            "@-webkit-keyframes bBWfDF{0%{-webkit-transform:scale(0);-ms-transform:scale(0);transform:scale(0);}100%{-webkit-transform:scale(1);-ms-transform:scale(1);transform:scale(1);}}",
+            "@keyframes bBWfDF{0%{-webkit-transform:scale(0);-ms-transform:scale(0);transform:scale(0);}100%{-webkit-transform:scale(1);-ms-transform:scale(1);transform:scale(1);}}",
+          ],
+          "toString": [Function],
+        }
+      }
+      childIndex={1}
+      left="6px"
+    />
+    <Styled(styled.div)
+      animation={
+        Keyframes {
+          "id": "sc-keyframes-eEJBHY",
+          "inject": [Function],
+          "name": "eEJBHY",
+          "rules": Array [
+            "@-webkit-keyframes eEJBHY{0%{-webkit-transform:translate(0,0);-ms-transform:translate(0,0);transform:translate(0,0);}100%{-webkit-transform:translate(19px,0);-ms-transform:translate(19px,0);transform:translate(19px,0);}}",
+            "@keyframes eEJBHY{0%{-webkit-transform:translate(0,0);-ms-transform:translate(0,0);transform:translate(0,0);}100%{-webkit-transform:translate(19px,0);-ms-transform:translate(19px,0);transform:translate(19px,0);}}",
+          ],
+          "toString": [Function],
+        }
+      }
+      childIndex={2}
+      left="6px"
+    />
+    <Styled(styled.div)
+      animation={
+        Keyframes {
+          "id": "sc-keyframes-eEJBHY",
+          "inject": [Function],
+          "name": "eEJBHY",
+          "rules": Array [
+            "@-webkit-keyframes eEJBHY{0%{-webkit-transform:translate(0,0);-ms-transform:translate(0,0);transform:translate(0,0);}100%{-webkit-transform:translate(19px,0);-ms-transform:translate(19px,0);transform:translate(19px,0);}}",
+            "@keyframes eEJBHY{0%{-webkit-transform:translate(0,0);-ms-transform:translate(0,0);transform:translate(0,0);}100%{-webkit-transform:translate(19px,0);-ms-transform:translate(19px,0);transform:translate(19px,0);}}",
+          ],
+          "toString": [Function],
+        }
+      }
+      childIndex={3}
+      left="26px"
+    />
+    <Styled(styled.div)
+      animation={
+        Keyframes {
+          "id": "sc-keyframes-gjACFv",
+          "inject": [Function],
+          "name": "gjACFv",
+          "rules": Array [
+            "@-webkit-keyframes gjACFv{0%{-webkit-transform:scale(1);-ms-transform:scale(1);transform:scale(1);}100%{-webkit-transform:scale(0);-ms-transform:scale(0);transform:scale(0);}}",
+            "@keyframes gjACFv{0%{-webkit-transform:scale(1);-ms-transform:scale(1);transform:scale(1);}100%{-webkit-transform:scale(0);-ms-transform:scale(0);transform:scale(0);}}",
+          ],
+          "toString": [Function],
+        }
+      }
+      childIndex={4}
+      left="45px"
+    />
+  </styled.div>
+</styled.div>
+`;

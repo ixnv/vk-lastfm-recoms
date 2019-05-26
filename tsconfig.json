@@ -38,9 +38,11 @@
     "server",
     "config",
     "dist",
+    "build",
     "coverage",
     "__tests__",
     "jest.config.js",
-    "hot-reload.js"
+    "hot-reload.js",
+    "src/app_old.js"
   ]
 }
