@@ -21,7 +21,6 @@ export async function getTracks({title, artist}: Track) {
             response
         }))
         .catch(response => {
-            console.error(response)
             return {
                 error: true,
                 response
