@@ -1,6 +1,5 @@
 const fetch = require('node-fetch')
 const JSDOM = require('jsdom').JSDOM
-const https = require('https')
 
 class LastFMHTMLClient {
     constructor() {
@@ -202,7 +201,7 @@ exports.handler = async (event, context, callback) => {
         }
     }
 
-    const apiClient = new LastFMClient('74c6ff6a9c1edd5572557e2d63eb1bc3')
+    const apiClient = new LastFMClient(process.env.LAST_FM_API_TOKEN)
     const similarTracks = await apiClient.getSimilarTracks(artist, track)
 
     let statusCode = 200

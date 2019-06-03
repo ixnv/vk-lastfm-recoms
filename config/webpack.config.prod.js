@@ -1,13 +1,15 @@
 const fs = require("fs")
 const path = require("path")
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+const Dotenv = require('dotenv-webpack')
 
 const appDirectory = fs.realpathSync(process.cwd())
 const resolveApp = relativePath => path.resolve(appDirectory, relativePath)
 
 module.exports = {
     bail: true,
-    mode: "development",
+    mode: "production",
     entry: "./src/index.tsx",
     output: {
         filename: "bundle.js",
@@ -24,16 +26,16 @@ module.exports = {
 
     module: {
         rules: [{
-                test: /\.ts$/,
-                enforce: "pre",
-                use: [{
-                    loader: "tslint-loader",
-                    options: {
-                        failOnHint: true,
-                        emitWarning: true
-                    }
-                }]
-            },
+            test: /\.ts$/,
+            enforce: "pre",
+            use: [{
+                loader: "tslint-loader",
+                options: {
+                    failOnHint: true,
+                    emitWarning: true
+                }
+            }]
+        },
             // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
             {
                 test: /\.tsx?$/,
@@ -55,6 +57,15 @@ module.exports = {
             tsconfig: resolveApp("tsconfig.json"),
             tslint: resolveApp("tslint.json"),
         }),
+        new Dotenv(),
+        new CopyPlugin([
+            {
+                from: 'src/icons', to: 'icons'
+            },
+            {
+                from: 'src/manifest.json'
+            }
+        ])
     ],
 
     // When importing a module whose path matches one of the following, just
@@ -78,6 +89,6 @@ module.exports = {
     // splitting or minification in interest of speed. These warnings become
     // cumbersome.
     performance: {
-        hints: false,
+        hints: "warning",
     }
 }

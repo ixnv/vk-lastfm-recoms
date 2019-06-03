@@ -2,7 +2,6 @@ import {Option, some, none} from 'fp-ts/lib/Option'
 import {Track} from '../types'
 import {levenshtein} from 'js-levenshtein'
 
-
 export function getUserId(): Option<string> {
     const audioPageLink = document.querySelector('#l_aud > a') as HTMLAnchorElement
     if (!audioPageLink) {
