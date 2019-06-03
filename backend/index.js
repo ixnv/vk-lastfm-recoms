@@ -3,7 +3,7 @@ const JSDOM = require('jsdom').JSDOM
 
 class LastFMHTMLClient {
     constructor() {
-        this.urlRoot = 'https://www.last.fm/music'
+        this.urlRoot = `${process.env.LAST_FM_WEBSITE}/music`
     }
 
     async getSimilarArtists(artist) {
@@ -32,7 +32,7 @@ class LastFMHTMLClient {
 class LastFMClient {
     constructor(token) {
         this.token = token
-        this.apiRoot = 'https://ws.audioscrobbler.com/2.0/'
+        this.apiRoot = process.env.LAST_FM_API_ROOT
 
         this.ERROR_INVALID_PARAM = 6 // artist or track not found
     }
