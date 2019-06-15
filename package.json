@@ -6,7 +6,7 @@
   "scripts": {
     "build:prod": "webpack --mode production --config=config/webpack.config.prod.js",
     "build:dev": "webpack --config=config/webpack.config.dev.js",
-    "build:watch": "webpack --config=config/webpack.config.dev.js --watch",
+    "build:watch": "webpack --config=config/webpack.config.prod.js --watch --info-verbosity verbose",
     "lint": "tslint -p .",
     "test": "jest",
     "test:coverage": "jest --coverage"
@@ -27,8 +27,6 @@
     "js-levenshtein": "^1.1.6",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-redux": "^7.0.3",
-    "redux": "^4.0.1",
     "styled-components": "^4.2.0"
   },
   "devDependencies": {
