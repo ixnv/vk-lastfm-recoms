@@ -11,24 +11,6 @@ export function getUserId(): Option<string> {
     return some(audioPageLink.href.substring(21))
 }
 
-export function cancelEvent(e: MouseEvent): boolean {
-    // tslint:disable-next-line
-    if (!(e = e || window.event)) {
-        return false
-    }
-
-    for (; e.originalEvent;) {
-        e = e.originalEvent
-    }
-
-    return e.preventDefault && e.preventDefault(),
-    e.stopPropagation && e.stopPropagation(),
-    e.stopImmediatePropagation && e.stopImmediatePropagation(),
-        e.cancelBubble = true,
-        e.returnValue = false,
-        false
-}
-
 export async function searchTrack(track: Track, userId: string) {
     const q = encodeURIComponent(`${track.artist} ${track.title}`)
 

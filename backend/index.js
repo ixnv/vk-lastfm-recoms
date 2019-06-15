@@ -1,179 +1,27 @@
-const fetch = require('node-fetch')
-const JSDOM = require('jsdom').JSDOM
+import {shuffle} from "./util";
+import {ApiClient, ERROR_INVALID_PARAM} from "./client/api";
+import {HTMLClient} from "./client/html";
 
-class LastFMHTMLClient {
-    constructor() {
-        this.urlRoot = `${process.env.LAST_FM_WEBSITE}/music`
-    }
+function parseQueryStringParameters(queryStringParameters) {
+    let {
+        artist,
+        track,
+        unwanted
+    } = queryStringParameters
 
-    async getSimilarArtists(artist) {
-        return await fetch(`${this.urlRoot}/${encodeURIComponent(artist)}/+similar`)
-            .then(async (response) => {
-                const html = await response.text()
-                const dom = new JSDOM(html)
-                const nodes = Array.from(dom.window.document.querySelectorAll('.big-artist-list-title'))
-
-                return {
-                    error: false,
-                    response: nodes.map(node => {
-                        return node.textContent
-                    })
-                }
-            })
-            .catch(error => {
-                return {
-                    error: true,
-                    response: error
-                }
-            })
-    }
-}
-
-class LastFMClient {
-    constructor(token) {
-        this.token = token
-        this.apiRoot = process.env.LAST_FM_API_ROOT
-
-        this.ERROR_INVALID_PARAM = 6 // artist or track not found
-    }
-
-    /**
-     * @param method string
-     * @param params object
-     * @returns {string}
-     */
-    createUrl(method, params) {
-        Object.keys(params).map(function (key) {
-            params[key] = encodeURIComponent(params[key])
-        })
-
-        const signedParams = Object.assign({
-            'api_key': this.token,
-            'method': method,
-            'autocorect': 1,
-            'format': 'json'
-        }, params)
-
-        const queryString = Object.keys(signedParams).reduce((acc, k) => {
-            acc.push(`${k}=${signedParams[k]}`)
-            return acc
-        }, []).join('&')
-
-        return `${this.apiRoot}?${queryString}`
-    }
-
-    async request(resource, params) {
-        const url = this.createUrl(resource, params)
-
-        return await fetch(url)
-            .then(response => {
-                if (response.status !== 200) {
-                    throw response
-                }
-
-                try {
-                    return response.json()
-                } catch (e) {
-                    throw response
-                }
-            })
-            .then(response => {
-                if (response.hasOwnProperty('error')) {
-                    throw response
-                }
-
-                return {
-                    error: false,
-                    response
-                }
-            })
-            .catch(response => ({
-                error: true,
-                response
-            }))
-    }
-
-    flatMap(payload, fn) {
-        if (payload.error) {
-            return payload
-        }
-
-        return {
-            error: payload.error,
-            response: fn(payload.response)
+    if (unwanted) {
+        try {
+            unwanted = JSON.parse(unwanted).map(unwanted => unwanted.toLowerCase())
+        } catch (e) {
+            unwanted = ''
         }
     }
 
-    async getSimilarTracks(artist, track) {
-        const similarTracks = await this.request('track.getsimilar', {
-            artist,
-            track
-        })
-
-        return this.flatMap(similarTracks, (similarTracks) => {
-            return similarTracks.track.map(({name, artist}) => {
-                return {
-                    artist: artist.name,
-                    track: name
-                }
-            })
-        })
+    return {
+        artist,
+        track,
+        unwanted
     }
-
-    async getSimilarArtists(artist) {
-        const similarArtists = await this.request('artist.getsimilar', {
-            artist
-        })
-
-        return this.flatMap(similarArtists, (similarArtists) => {
-            return similarArtists.artist.map(({name}) => name)
-        })
-    }
-
-    async getTopTracks(artist) {
-        const topTracks = await this.request('artist.gettoptracks', {
-            artist
-        })
-
-        return this.flatMap(topTracks, (topTracks) => {
-            return topTracks.track.map(({name, artist}) => ({
-                    artist: artist.name,
-                    track: name
-                })
-            )
-        })
-    }
-
-    async getRandomTopTracks(artists, chooseFrom) {
-        return Promise.all(
-            artists.map(async artist => {
-                const topTracks = await this.getTopTracks(artist)
-                // timeout or anything like that
-                if (topTracks.error) {
-                    return null
-                }
-
-                const top = topTracks.response.slice(0, chooseFrom).map(({name, artist}) => ({
-                    artist: artist.name,
-                    track: name
-                }))
-
-                if (!top.length) {
-                    return null
-                }
-
-                return shuffle(top)[0]
-            })
-        )
-    }
-}
-
-function shuffle(a) {
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]]
-    }
-    return a
 }
 
 exports.handler = async (event, context, callback) => {
@@ -187,21 +35,9 @@ exports.handler = async (event, context, callback) => {
         })
     }
 
-    let {
-        artist,
-        track,
-        unwanted
-    } = event.queryStringParameters
+    const {artist, track, unwanted} = parseQueryStringParameters(event.queryStringParameters)
 
-    if (unwanted) {
-        try {
-            unwanted = JSON.parse(unwanted).map(unwanted => unwanted.toLowerCase())
-        } catch (e) {
-            unwanted = ''
-        }
-    }
-
-    const apiClient = new LastFMClient(process.env.LAST_FM_API_TOKEN)
+    const apiClient = new ApiClient(process.env.LAST_FM_API_TOKEN)
     const similarTracks = await apiClient.getSimilarTracks(artist, track)
 
     let statusCode = 200
@@ -217,7 +53,7 @@ exports.handler = async (event, context, callback) => {
 
             if (similarArtists.error || !similarArtists.response.length) {
                 // artist not found
-                if (similarArtists.response.error === apiClient.ERROR_INVALID_PARAM) {
+                if (similarArtists.response.error === ERROR_INVALID_PARAM) {
                     return []
                 }
 
@@ -226,7 +62,7 @@ exports.handler = async (event, context, callback) => {
                  * even though they are displayed on the web page of artist
                  * let's grab html
                  */
-                const htmlClient = new LastFMHTMLClient()
+                const htmlClient = new HTMLClient()
                 similarArtists = await htmlClient.getSimilarArtists(artist)
 
                 // if there are no similar artists even from html response then fetch top tracks for artist
