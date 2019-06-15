@@ -3,12 +3,18 @@ import * as ReactDOM from 'react-dom'
 import {App} from './app'
 import RecommendButton, {RecommendButtonClass} from './components/RecommendButton'
 import {Track} from './types'
+import {AppContextProvider} from './AppContextProvider'
 
 const wrapperClass = 'vk-lastfm-recommendations'
 
 const wrapper = document.createElement('div')
 wrapper.setAttribute('class', wrapperClass)
 document.body.appendChild(wrapper)
+
+ReactDOM.render(
+    <App/>,
+    document.querySelector(`.${wrapperClass}`)
+)
 
 document.addEventListener('mouseover', ({target}: MouseEvent) => {
     if (target === null) {
@@ -22,6 +28,7 @@ document.addEventListener('mouseover', ({target}: MouseEvent) => {
         return
     }
 
+    // wait for .audio_row__actions to appear
     setTimeout(() => {
         const actions = closest.querySelector('.audio_row__actions')
 
@@ -31,8 +38,8 @@ document.addEventListener('mouseover', ({target}: MouseEvent) => {
 
         const audioRow = actions.closest('.audio_row__inner')
 
-        const artist = audioRow.querySelector('.audio_row__performers > a').textContent
-        const title = audioRow.querySelector('.audio_row__title_inner').textContent
+        const artist = audioRow.querySelector('.audio_row__performers > a').textContent.trim()
+        const title = audioRow.querySelector('.audio_row__title_inner').textContent.trim()
 
         const track: Track = {
             artist,
@@ -40,21 +47,22 @@ document.addEventListener('mouseover', ({target}: MouseEvent) => {
         }
 
         const div = document.createElement('div')
-        const button = <RecommendButton parentEl={div} track={track}/>
+        const button = (
+            <AppContextProvider>
+                <RecommendButton parentEl={div} track={track}/>
+            </AppContextProvider>
+        )
 
         ReactDOM.render(button, div)
         const first = div.firstChild
 
         if (first) {
-            // NOTE: vk and react are fucking with event propagation, use the dumbest way possible
-            // @ts-ignore
-            first.firstChild.setAttribute('onclick', 'cancelEvent(event)')
-            actions.appendChild(first.firstChild)
+            const wrappedButton = first.firstChild
+            if (wrappedButton) {
+                // @ts-ignore
+                wrappedButton.setAttribute('onclick', 'cancelEvent(event)')
+                actions.appendChild(first.firstChild)
+            }
         }
     }, 10)
 }, false)
-
-ReactDOM.render(
-    <App/>,
-    document.querySelector(`.${wrapperClass}`)
-)

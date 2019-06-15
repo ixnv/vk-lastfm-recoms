@@ -2,13 +2,9 @@ import * as React from 'react'
 import Loader from './Loader'
 import styled from 'styled-components'
 import {Track} from '../types'
-
-type Props = {
-    track?: Track
-}
+import AppContext, {State} from '../AppContextProvider'
 
 const Backdrop = styled.div`
-    display: none;
     position: fixed;
     z-index: 999;
     left: 0;
@@ -81,26 +77,47 @@ const MinimizeButton = styled(Actions)`
     height: 30px;
 `
 
-const ResultDialog: React.FC<Props> = ({track}) => {
-    return (
-        <Backdrop>
-            <Dialog tabIndex={0}>
-                <Content>
-                    <Info>Похожие на <strong>{track && track.artist}&mdash;{track && track.title}</strong></Info>
-                    <button className='flat_button button_wide secondary'>Показать ещё</button>
-                    <Loader show={false}/>
-                    <AudioList/>
-                    <NotFound/>
-                    <Error>
-                        <div>Произошла ошибка</div>
-                        <RetryButton className='flat_button'/>
-                    </Error>
-                </Content>
-                <CloseButton/>
-                <MinimizeButton/>
-            </Dialog>
-        </Backdrop>
-    )
+class ResultDialog extends React.PureComponent {
+    public render() {
+        return (
+            <AppContext.Consumer>
+                {
+                    (sharedState: State) => {
+                        console.log('sharedState.openModal', sharedState.openModal)
+
+                        if (!sharedState.openModal || sharedState.track === undefined) {
+                            return
+                        }
+
+                        const track: Track = sharedState.track
+                        console.log('max', track)
+
+                        return (
+                            <>
+                                <Backdrop/>
+                                <Dialog tabIndex={0}>
+                                    <Content>
+                                        <Info>Похожие
+                                            на <strong>{track && track.artist}&mdash;{track && track.title}</strong></Info>
+                                        <button className='flat_button button_wide secondary'>Показать ещё</button>
+                                        <Loader show={false}/>
+                                        <AudioList/>
+                                        <NotFound/>
+                                        <Error>
+                                            <div>Произошла ошибка</div>
+                                            <RetryButton className='flat_button'/>
+                                        </Error>
+                                    </Content>
+                                    <CloseButton/>
+                                    <MinimizeButton/>
+                                </Dialog>
+                            </>
+                        )
+                    }
+                }
+            </AppContext.Consumer>
+        )
+    }
 }
 
 export default ResultDialog

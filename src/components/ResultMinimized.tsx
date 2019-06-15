@@ -1,10 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import {Track} from '../types'
-
-type Props = {
-    track?: Track
-}
+import AppContext, {State} from '../AppContextProvider'
 
 const Wrapper = styled.div`
     float: right;
@@ -42,24 +38,44 @@ const Info = styled.div`
     white-space: nowrap;
 `
 
-const ResultMinimized: React.FC<Props> = ({track}) => {
-    return (
-        <div>
-            <Wrapper>
-                <MaximizeButton>
-                    <svg className='videoplayer_btn_icon videoplayer_expand_icon' viewBox='729 480 16 16'
-                         xmlns='http://www.w3.org/2000/svg' focusable='false'>
-                        <path
-                            d='M729 481.994c0-1.1.895-1.994 1.994-1.994h12.012c1.1 0 1.994.895 1.994 1.994v12.012c0 1.1-.895 1.994-1.994 1.994h-12.012c-1.1 0-1.994-.895-1.994-1.994v-12.012zm2 4.004c0-.55.456-.998 1.002-.998h9.996c.553 0 1.002.446 1.002.998v7.004c0 .55-.456.998-1.002.998h-9.996c-.553 0-1.002-.446-1.002-.998v-7.004z'
-                            fill='#9aa1ad' fillRule='evenodd'/>
-                    </svg>
-                </MaximizeButton>
-                <CloseButton/>
-            </Wrapper>
-            <ClearFix/>
-            <Info>Похожие на <strong>{track && track.artist}&mdash;{track && track.title}</strong></Info>
-        </div>
-    )
+class ResultMinimized extends React.Component {
+    public render() {
+        return (
+            <AppContext.Consumer>
+                {
+                    (sharedState: State) => {
+                        const track = sharedState.track
+
+                        if (track === undefined) {
+                            return
+                        }
+
+                        console.log('min', track)
+
+                        return (
+                            <>
+                                <Wrapper>
+                                    <MaximizeButton>
+                                        <svg className='videoplayer_btn_icon videoplayer_expand_icon'
+                                             viewBox='729 480 16 16'
+                                             xmlns='http://www.w3.org/2000/svg' focusable='false'>
+                                            <path
+                                                d='M729 481.994c0-1.1.895-1.994 1.994-1.994h12.012c1.1 0 1.994.895 1.994 1.994v12.012c0 1.1-.895 1.994-1.994 1.994h-12.012c-1.1 0-1.994-.895-1.994-1.994v-12.012zm2 4.004c0-.55.456-.998 1.002-.998h9.996c.553 0 1.002.446 1.002.998v7.004c0 .55-.456.998-1.002.998h-9.996c-.553 0-1.002-.446-1.002-.998v-7.004z'
+                                                fill='#9aa1ad' fillRule='evenodd'/>
+                                        </svg>
+                                    </MaximizeButton>
+                                    <CloseButton/>
+                                </Wrapper>
+                                <ClearFix/>
+                                <Info>Похожие
+                                    на <strong>{track && track.artist}&mdash;{track && track.title}</strong></Info>
+                            </>
+                        )
+                    }
+                }
+            </AppContext.Consumer>
+        )
+    }
 }
 
 export default ResultMinimized
