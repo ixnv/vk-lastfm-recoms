@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import AppContext, {State} from '../AppContextProvider'
+import AppContext, {BehaviouralState} from '../AppContextProvider'
 
 const Wrapper = styled.div`
     float: right;
@@ -43,7 +43,7 @@ class ResultMinimized extends React.Component {
         return (
             <AppContext.Consumer>
                 {
-                    (sharedState: State) => {
+                    (sharedState: BehaviouralState) => {
                         const track = sharedState.track
 
                         if (track === undefined) {

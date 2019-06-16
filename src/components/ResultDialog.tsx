@@ -2,7 +2,8 @@ import * as React from 'react'
 import Loader from './Loader'
 import styled from 'styled-components'
 import {Track} from '../types'
-import AppContext, {State} from '../AppContextProvider'
+import AppContext from '../AppContextProvider'
+import {useContext} from 'react'
 
 const Backdrop = styled.div`
     position: fixed;
@@ -16,7 +17,7 @@ const Backdrop = styled.div`
 `
 
 const Dialog = styled.div`
-    display: none;
+    display: block;
     position: fixed;
     z-index: 1000;
     top: 20%;
@@ -43,7 +44,7 @@ const NotFound = styled.div`
 `
 
 const Error = styled.div`
-    display: none;
+    display: block;
     text-align: center;
     height: 10em;
     padding: 5em 0 0 0;
@@ -77,47 +78,37 @@ const MinimizeButton = styled(Actions)`
     height: 30px;
 `
 
-class ResultDialog extends React.PureComponent {
-    public render() {
-        return (
-            <AppContext.Consumer>
-                {
-                    (sharedState: State) => {
-                        console.log('sharedState.openModal', sharedState.openModal)
+const ResultDialog: React.FC = () => {
+    const context = useContext(AppContext)
+    // const [error, setError] = useState(false)
 
-                        if (!sharedState.openModal || sharedState.track === undefined) {
-                            return
-                        }
-
-                        const track: Track = sharedState.track
-                        console.log('max', track)
-
-                        return (
-                            <>
-                                <Backdrop/>
-                                <Dialog tabIndex={0}>
-                                    <Content>
-                                        <Info>Похожие
-                                            на <strong>{track && track.artist}&mdash;{track && track.title}</strong></Info>
-                                        <button className='flat_button button_wide secondary'>Показать ещё</button>
-                                        <Loader show={false}/>
-                                        <AudioList/>
-                                        <NotFound/>
-                                        <Error>
-                                            <div>Произошла ошибка</div>
-                                            <RetryButton className='flat_button'/>
-                                        </Error>
-                                    </Content>
-                                    <CloseButton/>
-                                    <MinimizeButton/>
-                                </Dialog>
-                            </>
-                        )
-                    }
-                }
-            </AppContext.Consumer>
-        )
+    if (!context.openModal || context.track === undefined) {
+        return null
     }
+
+    const track: Track = context.track
+
+    return (
+        <>
+            <Backdrop/>
+            <Dialog tabIndex={0}>
+                <Content>
+                    <Info>Похожие
+                        на <strong>{track.artist}&mdash;{track.title}</strong></Info>
+                    <button className='flat_button button_wide secondary'>Показать ещё</button>
+                    <Loader/>
+                    <AudioList/>
+                    <NotFound/>
+                    <Error>
+                        <div>Произошла ошибка</div>
+                        <RetryButton className='flat_button'/>
+                    </Error>
+                </Content>
+                <CloseButton/>
+                <MinimizeButton/>
+            </Dialog>
+        </>
+    )
 }
 
 export default ResultDialog

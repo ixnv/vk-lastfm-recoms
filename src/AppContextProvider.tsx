@@ -1,17 +1,25 @@
 import * as React from 'react'
 import {Track} from './types'
 
-const AppContext = React.createContext({})
+type DefaultState = {
+    track?: Track
+    openModal: boolean
+}
 
-export type State = {
-    track?: Track,
+export type BehaviouralState = DefaultState & {
     setTrack: (track: Track) => void,
-    openModal: boolean,
     setOpenModal: (openModal: boolean) => void
 }
 
+const defaultValue: DefaultState = {
+    openModal: false,
+    track: undefined
+}
+
+const AppContext = React.createContext(defaultValue)
+
 export class AppContextProvider extends React.PureComponent {
-    public state: State = {
+    public state: BehaviouralState = {
         track: undefined,
         openModal: false,
         setTrack: (track: Track): void => {

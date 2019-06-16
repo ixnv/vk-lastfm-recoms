@@ -1,8 +1,7 @@
 import styled from 'styled-components'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {Track} from '../types'
-import AppContext, {State} from '../AppContextProvider'
+import AppContext, {BehaviouralState} from '../AppContextProvider'
 
 export const RecommendButtonClass = 'vk-lastfm-recommend-button'
 
@@ -12,23 +11,25 @@ const Button = styled.button`
 `
 
 type Props = {
-    parentEl: any,
-    track: Track
+    parentEl: HTMLDivElement
 }
 
 export default class RecommendButton extends React.Component<Props> {
-    private readonly el: any
-    private parentEl: any
-    private readonly track: Track
+    public state = {
+        track: {
+            title: '',
+            artist: ''
+        }
+    }
+
+    private readonly el: HTMLDivElement
+    private readonly parentEl: HTMLDivElement
 
     constructor(props: Props) {
         super(props)
 
         this.el = document.createElement('div')
-        // TODO: move to class or SC
-        this.el.style.display = 'inline-block'
         this.parentEl = props.parentEl
-        this.track = props.track
     }
 
     public componentDidMount(): void {
@@ -43,9 +44,10 @@ export default class RecommendButton extends React.Component<Props> {
         return ReactDOM.createPortal(
             <AppContext.Consumer>
                 {
-                    (sharedState: State) => {
+                    (sharedState: BehaviouralState) => {
                         const handleMouseUp = () => {
-                            sharedState.setTrack(this.track)
+                            console.log('state', this.state.track)
+                            sharedState.setTrack(this.state.track)
                             sharedState.setOpenModal(true)
                         }
 

@@ -1,14 +1,6 @@
 import * as React from 'react'
 import styled, {Keyframes, keyframes} from 'styled-components'
 
-type LoaderProps = {
-    show: boolean
-}
-
-const Wrapper = styled.div`
-    display: ${(props: LoaderProps) => props.show ? 'block' : 'none'}
-`
-
 const Loader = styled.div`
     position: relative;
     display: inline-block;
@@ -67,15 +59,13 @@ const Piece = styled(Loader)`
     }
 `
 
-const LoaderComponent: React.FC<LoaderProps> = ({show}: LoaderProps) => (
-    <Wrapper show={show}>
-        <Loader>
-            <Piece childIndex={1} animation={piece1Animation} left='6px'/>
-            <Piece childIndex={2} animation={piece2Animation} left='6px'/>
-            <Piece childIndex={3} animation={piece2Animation} left='26px'/>
-            <Piece childIndex={4} animation={piece3Animation} left='45px'/>
-        </Loader>
-    </Wrapper>
+const LoaderComponent: React.FC = () => (
+    <Loader>
+        <Piece childIndex={1} animation={piece1Animation} left='6px'/>
+        <Piece childIndex={2} animation={piece2Animation} left='6px'/>
+        <Piece childIndex={3} animation={piece2Animation} left='26px'/>
+        <Piece childIndex={4} animation={piece3Animation} left='45px'/>
+    </Loader>
 )
 
 export default LoaderComponent
