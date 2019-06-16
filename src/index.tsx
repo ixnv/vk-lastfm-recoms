@@ -1,9 +1,10 @@
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import {App} from './app'
+import ResultDialog from './components/ResultDialog'
+import ResultMinimized from './components/ResultMinimized'
+import {AppContextProvider} from './AppContextProvider'
 import RecommendButton, {RecommendButtonClass} from './components/RecommendButton'
 import {Track} from './types'
-import {AppContextProvider} from './AppContextProvider'
+import * as ReactDOM from 'react-dom'
 
 const wrapperClass = 'vk-lastfm-recommendations'
 
@@ -11,10 +12,18 @@ const wrapper = document.createElement('div')
 wrapper.setAttribute('class', wrapperClass)
 document.body.appendChild(wrapper)
 
-ReactDOM.render(
-    <App/>,
-    document.querySelector(`.${wrapperClass}`)
+// @ts-ignore
+let buttonRef
+
+const App = (
+    <AppContextProvider>
+        <RecommendButton ref={node => buttonRef = node} parentEl={wrapper}/>
+        <ResultDialog/>
+        <ResultMinimized/>
+    </AppContextProvider>
 )
+
+ReactDOM.render(App, wrapper)
 
 document.addEventListener('mouseover', ({target}: MouseEvent) => {
     if (target === null) {
@@ -45,24 +54,12 @@ document.addEventListener('mouseover', ({target}: MouseEvent) => {
             artist,
             title
         }
-
-        const div = document.createElement('div')
-        const button = (
-            <AppContextProvider>
-                <RecommendButton parentEl={div} track={track}/>
-            </AppContextProvider>
-        )
-
-        ReactDOM.render(button, div)
-        const first = div.firstChild
-
-        if (first) {
-            const wrappedButton = first.firstChild
-            if (wrappedButton) {
-                // @ts-ignore
-                wrappedButton.setAttribute('onclick', 'cancelEvent(event)')
-                actions.appendChild(first.firstChild)
-            }
-        }
+        // @ts-ignore
+        buttonRef.state.track = track
+        // @ts-ignore
+        const button = buttonRef.el
+        // set it right here, vk fucks up event handling
+        button!.setAttribute('onclick', 'cancelEvent(event)')
+        actions.appendChild(button)
     }, 10)
 }, false)
