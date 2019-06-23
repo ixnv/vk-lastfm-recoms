@@ -1,13 +1,15 @@
 import * as React from 'react'
+import {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react'
 import Loader from './Loader'
 import styled from 'styled-components'
-import {Track} from '../types'
 import AppContext from '../AppContextProvider'
-import {useContext} from 'react'
+import {getRecommendations, RecommendedTrack} from '../api/recommendations'
+import {getUserId, searchTrack} from '../api/vk'
+import {Track} from '../types'
 
 const Backdrop = styled.div`
     position: fixed;
-    z-index: 999;
+    z-index: 998;
     left: 0;
     top: 0;
     width: 100%;
@@ -19,7 +21,7 @@ const Backdrop = styled.div`
 const Dialog = styled.div`
     display: block;
     position: fixed;
-    z-index: 1000;
+    z-index: 999;
     top: 20%;
     left: 50%;
     transform: translateX(-50%);
@@ -35,9 +37,9 @@ const Info = styled.h3`
     padding: 0 10px;
 `
 
-const AudioList = styled.div``
+const AudioRowList = styled.div``
 
-const NotFound = styled.div`
+const NoResult = styled.div`
     text-align: center;
     height: 10em;
     line-height: 10em;
@@ -78,31 +80,85 @@ const MinimizeButton = styled(Actions)`
     height: 30px;
 `
 
-const ResultDialog: React.FC = () => {
-    const context = useContext(AppContext)
-    // const [error, setError] = useState(false)
+// const randomKey = () => Math.random().toString(36)
+const userId = getUserId().getOrElse('1') // FIXME: get rid of getOrElse
 
-    if (!context.openModal || context.track === undefined) {
+const ResultDialog: React.FC = () => {
+    const {dialogOpened, track} = useContext(AppContext)
+
+    if (!dialogOpened) {
         return null
     }
 
-    const track: Track = context.track
+    const audioRowListRef = useRef(null)
+
+    const [recommendedTracks, setRecommendedTracks] = useState([] as Array<RecommendedTrack>)
+    const [loading, setLoading] = useState(true)
+    const [isError, setError] = useState(false)
+    const [noResult, setNoResult] = useState(false)
+
+    useEffect(() => {
+        if (!track.artist) {
+            return
+        }
+
+        const fetchRecommendations = async () => {
+            return await getRecommendations(track)
+        }
+
+        fetchRecommendations().then(recommendResponse => {
+            if (recommendResponse.error) {
+                setError(true)
+            }
+
+            if (!recommendResponse.response.length) {
+                setNoResult(true)
+                return
+            }
+
+            setRecommendedTracks(recommendResponse.response)
+        })
+    }, [track])
+
+    useLayoutEffect(() => {
+        const searchTrackInVk = async (recommendedTrack: Track) => {
+            return await searchTrack(recommendedTrack, userId)
+        }
+
+        recommendedTracks.forEach(async (recommendedTrack: RecommendedTrack, index) => {
+            const foundTrack = await searchTrackInVk({
+                title: recommendedTrack.track,
+                artist: recommendedTrack.artist
+            })
+
+            if (foundTrack !== null) {
+                // FIXME: figure out how to use state in this case
+                // @ts-ignore
+                audioRowListRef!.current!.appendChild(foundTrack)
+            }
+
+            if (index === recommendedTracks.length - 1) {
+                setLoading(false)
+            }
+        })
+    }, [recommendedTracks])
 
     return (
         <>
             <Backdrop/>
             <Dialog tabIndex={0}>
                 <Content>
-                    <Info>Похожие
-                        на <strong>{track.artist}&mdash;{track.title}</strong></Info>
-                    <button className='flat_button button_wide secondary'>Показать ещё</button>
-                    <Loader/>
-                    <AudioList/>
-                    <NotFound/>
-                    <Error>
-                        <div>Произошла ошибка</div>
-                        <RetryButton className='flat_button'/>
-                    </Error>
+                    <Info>Похожие на <strong>{track.artist} &mdash; {track.title}</strong></Info>
+                    {loading ? <Loader/> : <button className='flat_button button_wide secondary'>Показать ещё</button>}
+                    <AudioRowList ref={audioRowListRef}/>
+                    {noResult && <NoResult/>}
+                    {
+                        isError &&
+                        <Error>
+                            <div>Произошла ошибка</div>
+                            <RetryButton className='flat_button'>Попробовать заново</RetryButton>
+                        </Error>
+                    }
                 </Content>
                 <CloseButton/>
                 <MinimizeButton/>

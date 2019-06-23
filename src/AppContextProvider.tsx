@@ -1,42 +1,48 @@
 import * as React from 'react'
+import {useState} from 'react'
 import {Track} from './types'
 
-type DefaultState = {
-    track?: Track
-    openModal: boolean
+export type AppState = {
+    track: Track // TODO: replace with fp-ts/lib/Option
+    dialogOpened: boolean
+    updateTrack: (track: Track) => void
+    updateDialogOpened: (dialogOpened: boolean) => void
 }
 
-export type BehaviouralState = DefaultState & {
-    setTrack: (track: Track) => void,
-    setOpenModal: (openModal: boolean) => void
-}
-
-const defaultValue: DefaultState = {
-    openModal: false,
-    track: undefined
+const defaultValue: AppState = {
+    dialogOpened: false,
+    track: {
+        title: '',
+        artist: ''
+    },
+    updateTrack: (track: Track) => {
+        defaultValue.track = track
+    },
+    updateDialogOpened: (dialogOpened: boolean): void => {
+        defaultValue.dialogOpened = dialogOpened
+    }
 }
 
 const AppContext = React.createContext(defaultValue)
 
-export class AppContextProvider extends React.PureComponent {
-    public state: BehaviouralState = {
-        track: undefined,
-        openModal: false,
-        setTrack: (track: Track): void => {
-            this.setState({track})
-        },
-        setOpenModal: (openModal: boolean): void => {
-            this.setState({openModal})
-        }
+export const AppContextProvider: React.FC = ({children}) => {
+    const [track, setTrack] = useState({
+        title: '',
+        artist: ''
+    })
+    const [dialogOpened, setDialogOpened] = useState(false)
+    const providedState = {
+        track,
+        dialogOpened,
+        updateTrack: (newTrack: Track) => setTrack(newTrack),
+        updateDialogOpened: (opened: boolean) => setDialogOpened(opened)
     }
 
-    public render() {
-        return (
-            <AppContext.Provider value={this.state}>
-                {this.props.children}
-            </AppContext.Provider>
-        )
-    }
+    return (
+        <AppContext.Provider value={providedState}>
+            {children}
+        </AppContext.Provider>
+    )
 }
 
 export default AppContext

@@ -50,12 +50,11 @@ document.addEventListener('mouseover', ({target}: MouseEvent) => {
         const artist = audioRow.querySelector('.audio_row__performers > a').textContent.trim()
         const title = audioRow.querySelector('.audio_row__title_inner').textContent.trim()
 
-        const track: Track = {
+        // @ts-ignore
+        buttonRef.state.track = {
             artist,
             title
-        }
-        // @ts-ignore
-        buttonRef.state.track = track
+        } as Track
         // @ts-ignore
         const button = buttonRef.el
         // set it right here, vk fucks up event handling

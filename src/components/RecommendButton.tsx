@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import AppContext, {BehaviouralState} from '../AppContextProvider'
+import AppContext, {AppState} from '../AppContextProvider'
 
 export const RecommendButtonClass = 'vk-lastfm-recommend-button'
 
@@ -29,6 +29,7 @@ export default class RecommendButton extends React.Component<Props> {
         super(props)
 
         this.el = document.createElement('div')
+        this.el.style.display = 'inline-block'
         this.parentEl = props.parentEl
     }
 
@@ -44,11 +45,10 @@ export default class RecommendButton extends React.Component<Props> {
         return ReactDOM.createPortal(
             <AppContext.Consumer>
                 {
-                    (sharedState: BehaviouralState) => {
+                    (appState: AppState) => {
                         const handleMouseUp = () => {
-                            console.log('state', this.state.track)
-                            sharedState.setTrack(this.state.track)
-                            sharedState.setOpenModal(true)
+                            appState.updateTrack(this.state.track)
+                            appState.updateDialogOpened(true)
                         }
 
                         return (

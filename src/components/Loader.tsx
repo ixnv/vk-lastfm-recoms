@@ -1,6 +1,12 @@
 import * as React from 'react'
 import styled, {Keyframes, keyframes} from 'styled-components'
 
+const Wrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+`
+
 const Loader = styled.div`
     position: relative;
     display: inline-block;
@@ -59,13 +65,29 @@ const Piece = styled(Loader)`
     }
 `
 
-const LoaderComponent: React.FC = () => (
-    <Loader>
-        <Piece childIndex={1} animation={piece1Animation} left='6px'/>
-        <Piece childIndex={2} animation={piece2Animation} left='6px'/>
-        <Piece childIndex={3} animation={piece2Animation} left='26px'/>
-        <Piece childIndex={4} animation={piece3Animation} left='45px'/>
-    </Loader>
-)
+const LoaderComponent: React.FC = () => {
+    const pieces = [
+        {animation: piece1Animation, left: '6px'},
+        {animation: piece2Animation, left: '6px'},
+        {animation: piece2Animation, left: '26px'},
+        {animation: piece3Animation, left: '45px'},
+    ]
+
+    return (
+        <Wrapper>
+            <Loader>
+                {
+                    pieces.forEach((piece, index) =>
+                        <Piece key={index} childIndex={index + 1} animation={piece.animation} left={piece.left}/>
+                    )
+                }
+                <Piece childIndex={1} animation={piece1Animation} left='6px'/>
+                <Piece childIndex={2} animation={piece2Animation} left='6px'/>
+                <Piece childIndex={3} animation={piece2Animation} left='26px'/>
+                <Piece childIndex={4} animation={piece3Animation} left='45px'/>
+            </Loader>
+        </Wrapper>
+    )
+}
 
 export default LoaderComponent

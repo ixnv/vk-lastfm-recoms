@@ -1,6 +1,6 @@
 import {Option, some, none} from 'fp-ts/lib/Option'
 import {Track} from '../types'
-import {levenshtein} from 'js-levenshtein'
+import levenshtein from 'js-levenshtein'
 
 export function getUserId(): Option<string> {
     const audioPageLink = document.querySelector('#l_aud > a') as HTMLAnchorElement
@@ -11,7 +11,7 @@ export function getUserId(): Option<string> {
     return some(audioPageLink.href.substring(21))
 }
 
-export async function searchTrack(track: Track, userId: string) {
+export async function searchTrack(track: Track, userId: string): Promise<null | HTMLDivElement> {
     const q = encodeURIComponent(`${track.artist} ${track.title}`)
 
     return await fetch('https://vk.com/al_audio.php', {
