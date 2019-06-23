@@ -6,7 +6,7 @@
   "scripts": {
     "build:prod": "webpack --mode production --config=config/webpack.config.prod.js",
     "build:dev": "webpack --config=config/webpack.config.dev.js",
-    "build:watch": "webpack --config=config/webpack.config.prod.js --watch --info-verbosity verbose",
+    "build:watch": "webpack --config=config/webpack.config.dev.js --watch --info-verbosity verbose",
     "lint": "tslint -p .",
     "test": "jest",
     "test:coverage": "jest --coverage"

@@ -1,6 +1,8 @@
 const fs = require("fs")
 const path = require("path")
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+const Dotenv = require('dotenv-webpack')
 
 const appDirectory = fs.realpathSync(process.cwd())
 const resolveApp = relativePath => path.resolve(appDirectory, relativePath)
@@ -24,16 +26,16 @@ module.exports = {
 
     module: {
         rules: [{
-                test: /\.ts$/,
-                enforce: "pre",
-                use: [{
-                    loader: "tslint-loader",
-                    options: {
-                        failOnHint: true,
-                        emitWarning: true
-                    }
-                }]
-            },
+            test: /\.ts$/,
+            enforce: "pre",
+            use: [{
+                loader: "tslint-loader",
+                options: {
+                    failOnHint: true,
+                    emitWarning: true
+                }
+            }]
+        },
             // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
             {
                 test: /\.tsx?$/,
@@ -55,6 +57,18 @@ module.exports = {
             tsconfig: resolveApp("tsconfig.json"),
             tslint: resolveApp("tslint.json"),
         }),
+        new Dotenv(),
+        new CopyPlugin([
+            {
+                from: 'src/icons', to: 'icons'
+            },
+            {
+                from: 'src/manifest.json'
+            },
+            {
+                from: 'src/hot-reload.js'
+            }
+        ])
     ],
 
     // Some libraries import Node modules but don't use them in the browser.
