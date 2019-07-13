@@ -7,7 +7,6 @@ import {Track} from './types'
 import * as ReactDOM from 'react-dom'
 
 const wrapperClass = 'vk-lastfm-recommendations'
-
 const wrapper = document.createElement('div')
 wrapper.setAttribute('class', wrapperClass)
 document.body.appendChild(wrapper)
