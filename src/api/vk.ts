@@ -1,6 +1,8 @@
 import {Option, some, none} from 'fp-ts/lib/Option'
-import {Track} from '../types'
+import {Track} from '../shared'
 import levenshtein from 'js-levenshtein'
+import {getOrElse} from 'fp-ts/lib/Option'
+import {pipe} from 'fp-ts/lib/pipeable'
 
 export function getUserId(): Option<string> {
     const audioPageLink = document.querySelector('#l_aud > a') as HTMLAnchorElement
@@ -11,8 +13,13 @@ export function getUserId(): Option<string> {
     return some(audioPageLink.href.substring(21))
 }
 
-export async function searchTrack(track: Track, userId: string): Promise<null | HTMLDivElement> {
+export async function searchTrack(track: Track): Promise<Option<HTMLDivElement>> {
     const q = encodeURIComponent(`${track.artist} ${track.title}`)
+    // user can switch accounts at any time, can't maybeTrack it, therefore we need to get user id on every search
+    const userId = pipe(
+        getUserId(),
+        getOrElse(() => '')
+    )
 
     return await fetch('https://vk.com/al_audio.php', {
         'credentials': 'include',
@@ -60,9 +67,9 @@ export async function searchTrack(track: Track, userId: string): Promise<null | 
         const minDistance = Math.min(...Object.keys(distances).map(x => +x))
         // Math.min returns Infinity on []
         if (minDistance !== Infinity && minDistance < track.artist.length) {
-            return distances[minDistance]
+            return some(distances[minDistance])
         }
 
-        return null
+        return none
     })
 }

@@ -3,35 +3,31 @@ import ResultDialog from './components/ResultDialog'
 import ResultMinimized from './components/ResultMinimized'
 import {AppContextProvider} from './AppContextProvider'
 import RecommendButton, {RecommendButtonClass} from './components/RecommendButton'
-import {Track} from './types'
 import * as ReactDOM from 'react-dom'
+import {wrapperClass} from './shared'
 
-const wrapperClass = 'vk-lastfm-recommendations'
+let buttonRef: RecommendButton | null
+
 const wrapper = document.createElement('div')
 wrapper.setAttribute('class', wrapperClass)
 document.body.appendChild(wrapper)
 
-// @ts-ignore
-let buttonRef
-
-const App = (
+ReactDOM.render(
     <AppContextProvider>
         <RecommendButton ref={node => buttonRef = node} parentEl={wrapper}/>
         <ResultDialog/>
         <ResultMinimized/>
-    </AppContextProvider>
+    </AppContextProvider>,
+    wrapper
 )
 
-ReactDOM.render(App, wrapper)
-
-document.addEventListener('mouseover', ({target}: MouseEvent) => {
-    if (target === null) {
+document.addEventListener('mouseover', (e: MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (!target) {
         return
     }
 
-    // @ts-ignore
     const closest = target.closest('.audio_row')
-
     if (!closest) {
         return
     }
@@ -45,19 +41,20 @@ document.addEventListener('mouseover', ({target}: MouseEvent) => {
         }
 
         const audioRow = actions.closest('.audio_row__inner')
+        if (!audioRow) {
+            return
+        }
+        const artist = audioRow.querySelector('.audio_row__performers > a')!.textContent!.trim()
+        const title = audioRow.querySelector('.audio_row__title_inner')!.textContent!.trim()
 
-        const artist = audioRow.querySelector('.audio_row__performers > a').textContent.trim()
-        const title = audioRow.querySelector('.audio_row__title_inner').textContent.trim()
-
-        // @ts-ignore
-        buttonRef.state.track = {
+        buttonRef!.state.track = {
             artist,
             title
-        } as Track
+        }
         // @ts-ignore
-        const button = buttonRef.el
+        const button = buttonRef!.el
         // set it right here, vk fucks up event handling
-        button!.setAttribute('onclick', 'cancelEvent(event)')
+        button.setAttribute('onclick', 'cancelEvent(event)')
         actions.appendChild(button)
     }, 10)
-}, false)
+})

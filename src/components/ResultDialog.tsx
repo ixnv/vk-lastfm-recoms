@@ -1,43 +1,47 @@
 import * as React from 'react'
-import {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react'
-import Loader from './Loader'
+import {SyntheticEvent, useContext, useEffect, useLayoutEffect, useState} from 'react'
 import styled from 'styled-components'
+import {fold, getOrElse, isNone} from 'fp-ts/lib/Option'
+import {pipe} from 'fp-ts/lib/pipeable'
+import Loader from './Loader'
 import AppContext from '../AppContextProvider'
-import {getRecommendations, RecommendedTrack} from '../api/recommendations'
-import {getUserId, searchTrack} from '../api/vk'
-import {Track} from '../types'
+import {getRecommendations} from '../api/recommendations'
+import {searchTrack} from '../api/vk'
+import {defaultTrack, Track, wrapperClass} from '../shared'
+import {randomId} from '../util'
 
-const Backdrop = styled.div`
+const Overlay = styled.div`
     position: fixed;
-    z-index: 998;
-    left: 0;
+    z-index: 550;
     top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0, 0, 0, 0.4);
 `
 
 const Dialog = styled.div`
-    display: block;
-    position: fixed;
+    position: relative;
     z-index: 999;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 530px;
-    padding: 15px;
+    margin: 25px auto 10px;
+    width: 560px;
+    min-height: 300px;
     background-color: white;
     border-radius: 3px;
 `
 
-const Content = styled.div``
+const Content = styled.div`
+    padding: 10px;
+`
 
 const Info = styled.h3`
     padding: 0 10px;
 `
 
-const AudioRowList = styled.div``
+const AudioRowList = styled.div`
+    padding: 8px 0;
+`
 
 const NoResult = styled.div`
     text-align: center;
@@ -46,26 +50,27 @@ const NoResult = styled.div`
 `
 
 const Error = styled.div`
-    display: block;
     text-align: center;
     height: 10em;
     padding: 5em 0 0 0;
 `
 
-const RetryButton = styled.div`
-    margin-top: 5px;
+const RetryButton = styled.button`
+    margin-top: 1em;
 `
 
 const Actions = styled.div`
-    width: 60px;
-    height: 50px;
-    opacity: 0.5;
     position: absolute;
     right: -60px;
+    width: 60px;
+    height: 50px;
     cursor: pointer;
+    border: none;
+    opacity: 0.5;
+    transition: opacity 60ms linear;
     
     &:hover {
-        opacity: 1;        
+        opacity: 1;
     }
 `
 
@@ -80,89 +85,137 @@ const MinimizeButton = styled(Actions)`
     height: 30px;
 `
 
-// const randomKey = () => Math.random().toString(36)
-const userId = getUserId().getOrElse('1') // FIXME: get rid of getOrElse
-
 const ResultDialog: React.FC = () => {
-    const {dialogOpened, track} = useContext(AppContext)
+    const {maybeTrack, opened, setTrack, setDialogOpened, setMinimized} = useContext(AppContext)
 
-    if (!dialogOpened) {
-        return null
-    }
-
-    const audioRowListRef = useRef(null)
-
-    const [recommendedTracks, setRecommendedTracks] = useState([] as Array<RecommendedTrack>)
-    const [loading, setLoading] = useState(true)
-    const [isError, setError] = useState(false)
+    const [recommendedTracks, setRecommendedTracks] = useState([] as Track[])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(false)
     const [noResult, setNoResult] = useState(false)
+    const [foundTracks, setFoundTracks] = useState([] as HTMLDivElement[])
 
     useEffect(() => {
-        if (!track.artist) {
+        if (isNone(maybeTrack)) {
             return
         }
 
-        const fetchRecommendations = async () => {
-            return await getRecommendations(track)
+        const fetchRecommendations = () => {
+            return pipe(
+                maybeTrack,
+                fold(
+                    () => Promise.reject(),
+                    async (track) => await getRecommendations(track)
+                )
+            )
         }
+
+        setNoResult(false)
+        setFoundTracks([])
+        setLoading(true)
 
         fetchRecommendations().then(recommendResponse => {
             if (recommendResponse.error) {
                 setError(true)
             }
 
-            if (!recommendResponse.response.length) {
+            if (!recommendResponse.tracks.length) {
                 setNoResult(true)
+                setLoading(false)
                 return
             }
 
-            setRecommendedTracks(recommendResponse.response)
+            setRecommendedTracks(recommendResponse.tracks)
+        }).catch(() => {
+            setLoading(false)
+            setError(true)
         })
-    }, [track])
+    }, [maybeTrack])
 
     useLayoutEffect(() => {
-        const searchTrackInVk = async (recommendedTrack: Track) => {
-            return await searchTrack(recommendedTrack, userId)
-        }
+        recommendedTracks.forEach(async (recommendedTrack: Track, index) => {
+            const maybeFoundTrack = await searchTrack(recommendedTrack)
 
-        recommendedTracks.forEach(async (recommendedTrack: RecommendedTrack, index) => {
-            const foundTrack = await searchTrackInVk({
-                title: recommendedTrack.track,
-                artist: recommendedTrack.artist
-            })
-
-            if (foundTrack !== null) {
-                // FIXME: figure out how to use state in this case
-                // @ts-ignore
-                audioRowListRef!.current!.appendChild(foundTrack)
-            }
+            pipe(
+                maybeFoundTrack,
+                fold(
+                    () => null,
+                    vkTrack => foundTracks.push(vkTrack)
+                )
+            )
 
             if (index === recommendedTracks.length - 1) {
                 setLoading(false)
+                setFoundTracks(foundTracks)
             }
         })
     }, [recommendedTracks])
 
+    const minimize = () => {
+        setMinimized(true)
+        setDialogOpened(false)
+    }
+    const close = () => {
+        setDialogOpened(false)
+        setFoundTracks([])
+    }
+    const closeOnEsc = (e: KeyboardEvent): void => {
+        if (e.key === 'Escape') {
+            close()
+        }
+    }
+    const overlayClass = `${wrapperClass}-overlay`
+    const overlayClose = (e: SyntheticEvent) => {
+        const target = e.target as HTMLDivElement
+        if (target.classList.contains(overlayClass)) {
+            setFoundTracks([])
+            setDialogOpened(false)
+        }
+    }
+
+    const retry = () => {
+        pipe(maybeTrack, fold(
+            () => null,
+            track => {
+                setError(false)
+                // a hack way to refresh
+                setTrack(track)
+            }
+        ))
+    }
+
+    const track = pipe(
+        maybeTrack,
+        getOrElse(() => defaultTrack)
+    )
+
     return (
         <>
-            <Backdrop/>
-            <Dialog tabIndex={0}>
-                <Content>
-                    <Info>Похожие на <strong>{track.artist} &mdash; {track.title}</strong></Info>
-                    {loading ? <Loader/> : <button className='flat_button button_wide secondary'>Показать ещё</button>}
-                    <AudioRowList ref={audioRowListRef}/>
-                    {noResult && <NoResult/>}
-                    {
-                        isError &&
+            {opened &&
+            <Overlay onClick={overlayClose} className={overlayClass} onKeyUp={closeOnEsc}>
+                <Dialog tabIndex={0}>
+                    <Content>
+                        <Info>Похожие на <strong>{track.artist} &mdash; {track.title}</strong></Info>
+                        {loading && <Loader/>}
+                        <AudioRowList>
+                            {
+                                foundTracks.map(foundTrack =>
+                                    <div key={randomId()} dangerouslySetInnerHTML={{__html: foundTrack.outerHTML}}/>
+                                )
+                            }
+                        </AudioRowList>
+                        {noResult && <NoResult>Ничего не найдено</NoResult>}
+                        {error &&
                         <Error>
                             <div>Произошла ошибка</div>
-                            <RetryButton className='flat_button'>Попробовать заново</RetryButton>
+                            <RetryButton className='flat_button' onClick={retry}>Попробовать заново</RetryButton>
                         </Error>
-                    }
-                </Content>
-                <CloseButton/>
-                <MinimizeButton/>
-            </Dialog>
+                        }
+                    </Content>
+                    <CloseButton onClick={close}/>
+                    <MinimizeButton onClick={minimize}/>
+                </Dialog>
+            </Overlay>
+            }
         </>
     )
 }

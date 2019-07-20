@@ -1,9 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`<Loader/> renders without crash 1`] = `
-<styled.div
-  show={true}
->
+<styled.div>
   <styled.div>
     <Styled(styled.div)
       animation={

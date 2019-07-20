@@ -42,7 +42,6 @@
     "coverage",
     "__tests__",
     "jest.config.js",
-    "src/hot-reload.js",
-    "src/app_old.js"
+    "src/hot-reload.js"
   ]
 }

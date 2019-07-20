@@ -2,34 +2,43 @@ import * as React from 'react'
 import styled from 'styled-components'
 import AppContext from '../AppContextProvider'
 import {useContext} from 'react'
+import {getOrElse, isNone} from 'fp-ts/lib/Option'
+import {pipe} from 'fp-ts/lib/pipeable'
+import {defaultTrack} from '../shared'
 
 const Wrapper = styled.div`
-    float: right;
-    margin: 5px 7px 0;
+    position: fixed;
+    right: 1%;
+    top: 30%;
+    max-width: 300px;
+    height: 65px;
+    box-shadow: #8b939a 0 0 5px 1px;
+    border-radius: 3px;
+    background: #fff;
+    border: 1px solid rgb(230, 237, 245);
 `
 
 const Actions = styled.div`
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    margin: 5px 7px 0;
+`
+
+const Action = styled.div`
     width: 12px;
     height: 12px;
-    margin-left: 2px;
+    margin-left: 5px;
     cursor: pointer;
     display: inline-block;
     
-    > svg {
-        width: 12px !important;
-        height: 12px !important;
+    &:hover svg > path {
+      fill: #8A8A8A;
     }
 `
 
-const CloseButton = styled(Actions)`
-    background: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2236%22%20height%3D%2236%22%20viewBox%3D%22940%20104%2036%2036%22%3E%3Cg%20style%3D%22fill%3Anone%3B%22%3E%3Crect%20x%3D%22940%22%20y%3D%22104%22%20width%3D%2236%22%20height%3D%2236%22%2F%3E%3Cg%20fill%3D%22%239aa1ad%22%3E%3Cpath%20d%3D%22M968.1%20129.9L950.1%20111.9C949.5%20111.4%20948.5%20111.4%20947.9%20111.9%20947.4%20112.5%20947.4%20113.5%20947.9%20114.1L965.9%20132.1C966.5%20132.6%20967.5%20132.6%20968.1%20132.1%20968.6%20131.5%20968.6%20130.5%20968.1%20129.9Z%22%2F%3E%3Cpath%20d%3D%22M950.1%20132.1L968.1%20114.1C968.6%20113.5%20968.6%20112.5%20968.1%20111.9%20967.5%20111.4%20966.5%20111.4%20965.9%20111.9L947.9%20129.9C947.4%20130.5%20947.4%20131.5%20947.9%20132.1%20948.5%20132.6%20949.5%20132.6%20950.1%20132.1Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E") no-repeat 50%;
-`
-
-const MaximizeButton = styled(Actions)``
-
-const ClearFix = styled.div`
-    clear: both;
-`
+const CloseButton = styled(Action)``
+const MaximizeButton = styled(Action)``
 
 const Info = styled.div`
     padding: 0 10px;
@@ -40,28 +49,50 @@ const Info = styled.div`
 `
 
 const ResultMinimized: React.FC = () => {
-    const {track} = useContext(AppContext)
+    const {maybeTrack, minimized, setMinimized, setDialogOpened} = useContext(AppContext)
 
-    if (!track.artist) {
+    if (isNone(maybeTrack) || !minimized) {
         return null
     }
+
+    const maximize = () => {
+        setMinimized(false)
+        setDialogOpened(true)
+    }
+
+    const close = () => {
+        setMinimized(false)
+    }
+
+    const track = pipe(maybeTrack, getOrElse(() => defaultTrack))
 
     return (
         <>
             <Wrapper>
-                <MaximizeButton>
-                    <svg className='videoplayer_btn_icon videoplayer_expand_icon'
-                         viewBox='729 480 16 16'
-                         xmlns='http://www.w3.org/2000/svg' focusable='false'>
-                        <path
-                            d='M729 481.994c0-1.1.895-1.994 1.994-1.994h12.012c1.1 0 1.994.895 1.994 1.994v12.012c0 1.1-.895 1.994-1.994 1.994h-12.012c-1.1 0-1.994-.895-1.994-1.994v-12.012zm2 4.004c0-.55.456-.998 1.002-.998h9.996c.553 0 1.002.446 1.002.998v7.004c0 .55-.456.998-1.002.998h-9.996c-.553 0-1.002-.446-1.002-.998v-7.004z'
-                            fill='#9aa1ad' fillRule='evenodd'/>
-                    </svg>
-                </MaximizeButton>
-                <CloseButton/>
+                <Actions>
+                    <MaximizeButton onClick={maximize}>
+                        <svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                            <path
+                                d='M0 3.2C0 2.07989 0 1.51984 0.217987 1.09202C0.409734 0.715695 0.715695 0.409734 1.09202 0.217987C1.51984 0 2.0799 0 3.2 0H8.8C9.92011 0 10.4802 0 10.908 0.217987C11.2843 0.409734 11.5903 0.715695 11.782 1.09202C12 1.51984 12 2.07989 12 3.2V4.8H9H6H0V3.2Z'
+                                fill='#C4C4C4'/>
+                            <path d='M0 4.8H1.71429V12C0.767512 12 0 11.2325 0 10.2857V4.8Z' fill='#C4C4C4'/>
+                            <path d='M10.2857 4.8H12V10.2857C12 11.2325 11.2325 12 10.2857 12V4.8Z' fill='#C4C4C4'/>
+                            <path d='M1.71429 10.2857H10.2857V12H1.71429V10.2857Z' fill='#C4C4C4'/>
+                        </svg>
+                    </MaximizeButton>
+                    <CloseButton onClick={close}>
+                        <svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                            <path
+                                d='M0.314028 1.83029C-0.104676 1.41158 -0.104676 0.732731 0.314028 0.314028C0.732731 -0.104676 1.41158 -0.104676 1.83029 0.314028L11.686 10.1697C12.1047 10.5884 12.1047 11.2673 11.686 11.686C11.2673 12.1047 10.5884 12.1047 10.1697 11.686L0.314028 1.83029Z'
+                                fill='#C4C4C4'/>
+                            <path
+                                d='M10.1697 0.314028C10.5884 -0.104676 11.2673 -0.104676 11.686 0.314028C12.1047 0.732731 12.1047 1.41158 11.686 1.83029L1.83029 11.686C1.41158 12.1047 0.732731 12.1047 0.314028 11.686C-0.104676 11.2673 -0.104676 10.5884 0.314028 10.1697L10.1697 0.314028Z'
+                                fill='#C4C4C4'/>
+                        </svg>
+                    </CloseButton>
+                </Actions>
+                <Info>Похожие на <strong>{track.artist} &mdash; {track.title}</strong></Info>
             </Wrapper>
-            <ClearFix/>
-            <Info>Похожие на <strong>{track.artist} &mdash; {track.title}</strong></Info>
         </>
     )
 }

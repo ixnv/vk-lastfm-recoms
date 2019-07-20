@@ -1,38 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<ResultDialog/> renders without crash 1`] = `
-<styled.div>
-  <styled.div
-    tabIndex={0}
-  >
-    <styled.div>
-      <styled.h3>
-        Похожие на 
-        <strong>
-          —
-        </strong>
-      </styled.h3>
-      <button
-        className="flat_button button_wide secondary"
-      >
-        Показать ещё
-      </button>
-      <LoaderComponent
-        show={false}
-      />
-      <styled.div />
-      <styled.div />
-      <styled.div>
-        <div>
-          Произошла ошибка
-        </div>
-        <styled.div
-          className="flat_button"
-        />
-      </styled.div>
-    </styled.div>
-    <Styled(styled.div) />
-    <Styled(styled.div) />
-  </styled.div>
-</styled.div>
-`;
+exports[`<ResultDialog/> renders without crash 1`] = `<Fragment />`;

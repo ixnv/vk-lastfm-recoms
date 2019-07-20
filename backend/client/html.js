@@ -5,12 +5,16 @@ export class HTMLClient {
         this.apiRoot = apiRoot
     }
 
+    /**
+     * @param artist string
+     * @returns {Promise<T | {response: any, error: boolean}>}
+     */
     async getSimilarArtists(artist) {
         return await fetch(`${this.apiRoot}/music/${encodeURIComponent(artist)}/+similar`)
             .then(async (response) => {
                 const html = await response.text()
                 const dom = new JSDOM(html)
-                const nodes = Array.from(dom.window.document.querySelectorAll('.big-artist-list-title'))
+                const nodes = Array.from(dom.window.document.querySelectorAll('.similar-artists-item-name > .link-block-target'))
 
                 return {
                     error: false,

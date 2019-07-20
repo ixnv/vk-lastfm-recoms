@@ -1,41 +1,45 @@
 import * as React from 'react'
 import {useState} from 'react'
-import {Track} from './types'
+import {Track} from './shared'
+import {none, Option, some} from 'fp-ts/lib/Option'
 
 export type AppState = {
-    track: Track // TODO: replace with fp-ts/lib/Option
-    dialogOpened: boolean
-    updateTrack: (track: Track) => void
-    updateDialogOpened: (dialogOpened: boolean) => void
+    maybeTrack: Option<Track>
+    opened: boolean
+    minimized: boolean
+    setTrack(track: Track): void
+    setDialogOpened(opened: boolean): void
+    setMinimized(minimized: boolean): void
 }
 
 const defaultValue: AppState = {
-    dialogOpened: false,
-    track: {
-        title: '',
-        artist: ''
+    maybeTrack: none,
+    opened: false,
+    minimized: false,
+    setTrack: (track: Track): void => {
+        defaultValue.maybeTrack = some(track)
     },
-    updateTrack: (track: Track) => {
-        defaultValue.track = track
+    setDialogOpened(opened: boolean): void {
+        defaultValue.setDialogOpened(opened)
     },
-    updateDialogOpened: (dialogOpened: boolean): void => {
-        defaultValue.dialogOpened = dialogOpened
+    setMinimized(minimized: boolean): void {
+        defaultValue.minimized = minimized
     }
 }
 
 const AppContext = React.createContext(defaultValue)
 
 export const AppContextProvider: React.FC = ({children}) => {
-    const [track, setTrack] = useState({
-        title: '',
-        artist: ''
-    })
-    const [dialogOpened, setDialogOpened] = useState(false)
+    const [maybeTrack, setTrack] = useState<Option<Track>>(none)
+    const [opened, setDialogOpened] = useState(false)
+    const [minimized, setMinimized] = useState(false)
     const providedState = {
-        track,
-        dialogOpened,
-        updateTrack: (newTrack: Track) => setTrack(newTrack),
-        updateDialogOpened: (opened: boolean) => setDialogOpened(opened)
+        maybeTrack,
+        opened,
+        minimized,
+        setTrack: (track: Track) => setTrack(some(track)),
+        setDialogOpened: (opened: boolean) => setDialogOpened(opened),
+        setMinimized: (minimized: boolean) => setMinimized(minimized)
     }
 
     return (

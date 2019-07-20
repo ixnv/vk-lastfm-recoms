@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "https://vk.com/*",
-    "https://hblah41x5a.execute-api.eu-central-1.amazonaws.com/*"
+    "https://hblah41x5a.execute-api.eu-central-1.amazonaws.com/*",
+    "http://localhost:3000/*"
   ],
   "content_scripts": [
     {

@@ -89,13 +89,13 @@ export class ApiClient {
      * @returns {Promise<{response: *, error: *}|{error}|*>}
      */
     async getSimilarTracks(artist, track) {
-        const similarTracks = await this._request('track.getsimilar', {
+        const similarTracks = await this._request('maybeTrack.getsimilar', {
             artist,
             track
         })
 
         return this._flatMap(similarTracks, similarTracks => {
-            return similarTracks.track.map(({name, artist}) => {
+            return similarTracks.maybeTrack.map(({name, artist}) => {
                 return {
                     artist: artist.name,
                     track: name
@@ -128,7 +128,7 @@ export class ApiClient {
         })
 
         return this._flatMap(topTracks, (topTracks) => {
-            return topTracks.track.map(({name, artist}) => ({
+            return topTracks.maybeTrack.map(({name, artist}) => ({
                     artist: artist.name,
                     track: name
                 })

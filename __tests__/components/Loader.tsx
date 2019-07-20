@@ -3,7 +3,7 @@ import {shallow} from 'enzyme'
 import Loader from '../../src/components/Loader'
 
 test('<Loader/> renders without crash', () => {
-    const loader = shallow(<Loader show={true}/>)
+    const loader = shallow(<Loader/>)
 
     expect(loader).toMatchSnapshot()
 })
