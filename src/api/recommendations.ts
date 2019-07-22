@@ -2,7 +2,7 @@ import {Track} from '../shared'
 
 const apiRoot = process.env.RECOMMENDATIONS_API_ROOT
 
-type RecommendationsResponse = {
+export type RecommendationsResponse = {
     tracks: Track[]
     error: boolean
 }

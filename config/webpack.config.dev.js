@@ -3,6 +3,7 @@ const path = require("path")
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const Dotenv = require('dotenv-webpack')
+const DashboardPlugin = require('webpack-dashboard/plugin')
 
 const appDirectory = fs.realpathSync(process.cwd())
 const resolveApp = relativePath => path.resolve(appDirectory, relativePath)
@@ -55,6 +56,7 @@ module.exports = {
     },
 
     plugins: [
+        new DashboardPlugin({port: 3001}),
         new Dotenv(),
         new CopyPlugin([
             {
@@ -71,6 +73,7 @@ module.exports = {
             tsconfig: resolveApp("tsconfig.json"),
             tslint: resolveApp("tslint.json"),
         }),
+
     ],
 
     // Some libraries import Node modules but don't use them in the browser.
