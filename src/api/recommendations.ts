@@ -4,7 +4,8 @@ const apiRoot = process.env.RECOMMENDATIONS_API_ROOT
 
 export type RecommendationsResponse = {
     tracks: Track[]
-    error: boolean
+    error: boolean,
+    canFetchMoreTracks: boolean
 }
 
 export async function getRecommendations({title, artist}: Track): Promise<RecommendationsResponse> {

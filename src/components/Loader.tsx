@@ -3,8 +3,8 @@ import styled, {Keyframes, keyframes} from 'styled-components'
 
 const Wrapper = styled.div`
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    justify-content: center;
 `
 
 const Loader = styled.div`

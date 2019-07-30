@@ -92,6 +92,7 @@ const ResultDialog: React.FC = () => {
     const [error, setError] = useState(false)
     const [noResult, setNoResult] = useState(false)
     const [vkTracks, setVkTracks] = useState([] as HTMLDivElement[])
+    const [canFetchMore, setCanFetchMore] = useState(false)
 
     useEffect(() => {
         if (isNone(maybeTrack)) {
@@ -101,6 +102,7 @@ const ResultDialog: React.FC = () => {
         setNoResult(false)
         setVkTracks([])
         setLoading(true)
+        setCanFetchMore(false)
 
         const fetchRecommendations = () => {
             return pipe(
@@ -141,6 +143,7 @@ const ResultDialog: React.FC = () => {
                         setNoResult(true)
                     } else {
                         setVkTracks(vkTracks)
+                        setCanFetchMore(recommendResponse.canFetchMoreTracks)
                     }
                 }
             })
@@ -195,6 +198,9 @@ const ResultDialog: React.FC = () => {
                 <Dialog tabIndex={0}>
                     <Content>
                         <Info>Похожие на <strong>{track.artist} &mdash; {track.title}</strong></Info>
+                        {canFetchMore &&
+                        <button className='flat_button button_wide secondary' onClick={retry}>Показать ещё</button>
+                        }
                         {loading && <Loader/>}
                         <AudioRowList>
                             {

@@ -20,7 +20,6 @@ const Wrapper = styled.div`
 
 const Actions = styled.div`
     display: flex;
-    align-items: flex-end;
     justify-content: flex-end;
     margin: 5px 7px 0;
 `
