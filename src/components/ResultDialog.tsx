@@ -179,6 +179,7 @@ const ResultDialog: React.FC = () => {
         pipe(maybeTrack, fold(
             () => null,
             track => {
+                setVkTracks([])
                 setError(false)
                 // a hack way to refresh
                 setTrack(track)
