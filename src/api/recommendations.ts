@@ -1,6 +1,7 @@
 import {Track} from '../shared'
 
 const apiRoot = process.env.RECOMMENDATIONS_API_ROOT
+const apiVersion = process.env.RECOMMENDATIONS_API_VERSION
 
 export type RecommendationsResponse = {
     tracks: Track[]
@@ -9,7 +10,7 @@ export type RecommendationsResponse = {
 }
 
 export async function getRecommendations({title, artist}: Track): Promise<RecommendationsResponse> {
-    return await fetch(`${apiRoot}/similar-tracks?artist=${artist}&track=${title}`)
+    return await fetch(`${apiRoot}/similar-tracks?version=${apiVersion}&artist=${artist}&track=${title}`)
         .then(response => {
             if (response.status !== 200) {
                 throw response
