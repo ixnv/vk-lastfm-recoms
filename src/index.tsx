@@ -55,6 +55,7 @@ document.addEventListener('mouseover', (e: MouseEvent) => {
         const button = buttonRef!.el
         // set it right here, vk fucks up event handling
         button.setAttribute('onclick', 'cancelEvent(event)')
+        button.style.display = 'inline'
         actions.appendChild(button)
     }, 10)
 })
