@@ -7,15 +7,9 @@
     "default_title": "LastFM similar artists in VK",
     "default_icon": "icons/icon_16.png"
   },
-
   "permissions": [
-    "tabs",
-    "activeTab",
-    "debugger",
-    "storage",
     "https://vk.com/*",
-    "https://hblah41x5a.execute-api.eu-central-1.amazonaws.com/*",
-    "http://localhost:3000/*"
+    "https://hblah41x5a.execute-api.eu-central-1.amazonaws.com/*"
   ],
   "content_scripts": [
     {
