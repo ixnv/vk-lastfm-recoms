@@ -2,7 +2,6 @@
 .DS_Store
 aws/.DS_Store
 aws/node_modules
-build/*
 dist/*
 target.zip
 

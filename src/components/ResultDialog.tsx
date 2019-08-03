@@ -8,7 +8,6 @@ import AppContext from '../AppContextProvider'
 import {getRecommendations, RecommendationsResponse} from '../api/recommendations'
 import {searchTrack} from '../api/vk'
 import {defaultTrack, Track, wrapperClass} from '../shared'
-// import {randomId} from '../util'
 
 const Backdrop = styled.div`
     position: fixed;
@@ -92,7 +91,8 @@ const ResultDialog: React.FC = () => {
     const [error, setError] = useState(false)
     const [noResult, setNoResult] = useState(false)
     const [canFetchMore, setCanFetchMore] = useState(false)
-    const audioListRef: any = useRef<HTMLDivElement>(null)
+
+    const audioListRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         if (isNone(maybeTrack)) {
@@ -100,7 +100,7 @@ const ResultDialog: React.FC = () => {
         }
 
         setNoResult(false)
-        audioListRef.current.innerHTML = ''
+        audioListRef!.current!.innerHTML = ''
         setLoading(true)
         setCanFetchMore(false)
 
@@ -173,7 +173,7 @@ const ResultDialog: React.FC = () => {
     const overlayClose = (e: SyntheticEvent) => {
         const target = e.target as HTMLDivElement
         if (target.classList.contains(overlayClass)) {
-            setDialogOpened(false)
+            close()
         }
     }
 
