@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {SyntheticEvent, useContext, useEffect, useState} from 'react'
+import {SyntheticEvent, useContext, useEffect, useRef, useState} from 'react'
 import styled from 'styled-components'
 import {fold, getOrElse, isNone} from 'fp-ts/lib/Option'
 import {pipe} from 'fp-ts/lib/pipeable'
@@ -8,7 +8,7 @@ import AppContext from '../AppContextProvider'
 import {getRecommendations, RecommendationsResponse} from '../api/recommendations'
 import {searchTrack} from '../api/vk'
 import {defaultTrack, Track, wrapperClass} from '../shared'
-import {randomId} from '../util'
+// import {randomId} from '../util'
 
 const Backdrop = styled.div`
     position: fixed;
@@ -91,8 +91,8 @@ const ResultDialog: React.FC = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(false)
     const [noResult, setNoResult] = useState(false)
-    const [vkTracks, setVkTracks] = useState([] as HTMLDivElement[])
     const [canFetchMore, setCanFetchMore] = useState(false)
+    const audioListRef: any = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         if (isNone(maybeTrack)) {
@@ -100,7 +100,7 @@ const ResultDialog: React.FC = () => {
         }
 
         setNoResult(false)
-        setVkTracks([])
+        audioListRef.current.innerHTML = ''
         setLoading(true)
         setCanFetchMore(false)
 
@@ -114,6 +114,7 @@ const ResultDialog: React.FC = () => {
             )
         }
 
+        let foundAmount = 0
         fetchRecommendations().then((recommendResponse: RecommendationsResponse) => {
             if (recommendResponse.error) {
                 setError(true)
@@ -133,16 +134,19 @@ const ResultDialog: React.FC = () => {
                     maybeFoundTrack,
                     fold(
                         () => null,
-                        vkTrack => vkTracks.push(vkTrack)
+                        vkTrack => {
+                            foundAmount++
+                            audioListRef!.current!.appendChild(vkTrack as HTMLDivElement)
+                        }
                     )
                 )
 
                 if (index === recommendedTracks.length - 1) {
                     setLoading(false)
-                    if (!vkTracks.length) {
+                    if (foundAmount === 0) {
                         setNoResult(true)
+                        setCanFetchMore(false)
                     } else {
-                        setVkTracks(vkTracks)
                         setCanFetchMore(recommendResponse.canFetchMoreTracks)
                     }
                 }
@@ -159,7 +163,6 @@ const ResultDialog: React.FC = () => {
     }
     const close = () => {
         setDialogOpened(false)
-        setVkTracks([])
     }
     const closeOnEsc = (e: React.KeyboardEvent<HTMLDivElement>): void => {
         if (e.key === 'Escape') {
@@ -170,7 +173,6 @@ const ResultDialog: React.FC = () => {
     const overlayClose = (e: SyntheticEvent) => {
         const target = e.target as HTMLDivElement
         if (target.classList.contains(overlayClass)) {
-            setVkTracks([])
             setDialogOpened(false)
         }
     }
@@ -179,7 +181,6 @@ const ResultDialog: React.FC = () => {
         pipe(maybeTrack, fold(
             () => null,
             track => {
-                setVkTracks([])
                 setError(false)
                 // a hack way to refresh
                 setTrack(track)
@@ -203,13 +204,7 @@ const ResultDialog: React.FC = () => {
                         <button className='flat_button button_wide secondary' onClick={retry}>Показать ещё</button>
                         }
                         {loading && <Loader/>}
-                        <AudioRowList>
-                            {
-                                vkTracks.map(vkTrack =>
-                                    <div key={randomId()} dangerouslySetInnerHTML={{__html: vkTrack.outerHTML}}/>
-                                )
-                            }
-                        </AudioRowList>
+                        <AudioRowList ref={audioListRef}/>
                         {noResult && <NoResult>Ничего не найдено</NoResult>}
                         {error &&
                         <Error>
