@@ -1,5 +1,5 @@
 import React from 'react'
-import ResultDialog from './components/ResultDialog/ResultDialog'
+import ResultDialog from './components/ResultDialog/index'
 import ResultMinimized from './components/ResultMinimized'
 import {AppContextProvider} from './AppContextProvider'
 import RecommendButton, {RecommendButtonClass} from './components/RecommendButton'

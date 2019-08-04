@@ -12,7 +12,7 @@ import CloseButton from './CloseButton'
 import MinimizeButton from './MinimizeButton'
 import {AudioRowList, Content, Dialog, Error, Info, NoResult, RetryButton} from './ResultDialog.sc'
 
-const ResultDialog: React.FC = () => {
+const Index: React.FC = () => {
     const {maybeTrack, opened, setTrack} = useContext(AppContext)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(false)
@@ -26,8 +26,11 @@ const ResultDialog: React.FC = () => {
             return
         }
 
+        if (audioListRef && audioListRef.current) {
+            audioListRef.current.innerHTML = ''
+        }
+
         setNoResult(false)
-        audioListRef!.current!.innerHTML = ''
         setLoading(true)
         setCanFetchMore(false)
 
@@ -126,4 +129,4 @@ const ResultDialog: React.FC = () => {
     )
 }
 
-export default ResultDialog
+export default Index

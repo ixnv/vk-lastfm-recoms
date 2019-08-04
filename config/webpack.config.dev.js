@@ -45,10 +45,10 @@ module.exports = {
 
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
             {
-                use: [
-                    "thread-loader",
-                    "source-map-loader"
-                ],
+                // use: [
+                //     "thread-loader",
+                //     "source-map-loader"
+                // ],
                 enforce: "pre",
                 test: /\.js$/,
             }
