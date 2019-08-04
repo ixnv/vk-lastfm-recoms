@@ -1,5 +1,5 @@
 import React from 'react'
-import {useContext, useEffect, useRef, useState} from 'react'
+import {useContext, useEffect, useState} from 'react'
 import {fold, getOrElse, isNone} from 'fp-ts/lib/Option'
 import {pipe} from 'fp-ts/lib/pipeable'
 import Loader from './Loader'
@@ -11,6 +11,7 @@ import Backdrop from './Backdrop'
 import CloseButton from './CloseButton'
 import MinimizeButton from './MinimizeButton'
 import {AudioRowList, Content, Dialog, Error, Info, NoResult, RetryButton} from './ResultDialog.sc'
+import {randomId} from '../../util'
 
 const ResultDialog: React.FC = () => {
     const {maybeTrack, opened, setTrack} = useContext(AppContext)
@@ -18,18 +19,17 @@ const ResultDialog: React.FC = () => {
     const [error, setError] = useState(false)
     const [noResult, setNoResult] = useState(false)
     const [canFetchMore, setCanFetchMore] = useState(false)
-
-    const audioListRef = useRef<HTMLDivElement>(null)
+    const [vkTracks, setVkTracks] = useState([] as HTMLDivElement[])
 
     useEffect(() => {
         if (isNone(maybeTrack)) {
             return
         }
 
-        if (audioListRef && audioListRef.current) {
-            audioListRef.current.innerHTML = ''
-        }
+        // wtf
+        vkTracks.splice(0)
 
+        setVkTracks([])
         setNoResult(false)
         setLoading(true)
         setCanFetchMore(false)
@@ -44,7 +44,6 @@ const ResultDialog: React.FC = () => {
             )
         }
 
-        let foundAmount = 0
         fetchRecommendations().then((recommendResponse: RecommendationsResponse) => {
             if (recommendResponse.error) {
                 setError(true)
@@ -62,18 +61,17 @@ const ResultDialog: React.FC = () => {
 
                 pipe(maybeFoundTrack, fold(
                     () => null,
-                    vkTrack => {
-                        foundAmount++
-                        audioListRef!.current!.appendChild(vkTrack as HTMLDivElement)
-                    })
+                    vkTrack =>
+                        vkTracks.push(vkTrack)
+                    )
                 )
 
                 if (index === recommendedTracks.length - 1) {
                     setLoading(false)
-                    if (foundAmount === 0) {
+                    if (!vkTracks.length) {
                         setNoResult(true)
-                        setCanFetchMore(false)
                     } else {
+                        setVkTracks(vkTracks)
                         setCanFetchMore(recommendResponse.canFetchMoreTracks)
                     }
                 }
@@ -95,10 +93,7 @@ const ResultDialog: React.FC = () => {
         ))
     }
 
-    const track = pipe(
-        maybeTrack,
-        getOrElse(() => defaultTrack)
-    )
+    const track = pipe(maybeTrack, getOrElse(() => defaultTrack))
 
     return (
         <>
@@ -111,7 +106,13 @@ const ResultDialog: React.FC = () => {
                         <button className='flat_button button_wide secondary' onClick={retry}>Показать ещё</button>
                         }
                         {loading && <Loader/>}
-                        <AudioRowList ref={audioListRef}/>
+                        <AudioRowList>
+                            {
+                                vkTracks.map(vkTrack =>
+                                    <div key={randomId()} dangerouslySetInnerHTML={{__html: vkTrack.outerHTML}}/>
+                                )
+                            }
+                        </AudioRowList>
                         {noResult && <NoResult>Ничего не найдено</NoResult>}
                         {error &&
                         <Error>
