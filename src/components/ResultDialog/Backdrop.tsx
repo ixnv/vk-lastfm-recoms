@@ -15,13 +15,13 @@ const BackdropSC = styled.div`
     background-color: rgba(0, 0, 0, 0.4);
 `
 
-const overlayClass = `${wrapperClass}-backdrop`
+const backdropClass = `${wrapperClass}-backdrop`
 
 const Backdrop: React.FC = ({children}) => {
     const {setDialogOpened} = useContext(AppContext)
-    const overlayClose = (e: SyntheticEvent) => {
+    const backdropClose = (e: SyntheticEvent) => {
         const target = e.target as HTMLDivElement
-        if (target.classList.contains(overlayClass)) {
+        if (target.classList.contains(backdropClass)) {
             close()
         }
     }
@@ -36,7 +36,7 @@ const Backdrop: React.FC = ({children}) => {
     }
 
     return (
-        <BackdropSC onClick={overlayClose} className={overlayClass} onKeyUp={closeOnEsc}>
+        <BackdropSC onClick={backdropClose} className={backdropClass} onKeyUp={closeOnEsc}>
             {children}
         </BackdropSC>
     )

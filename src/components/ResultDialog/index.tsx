@@ -12,7 +12,7 @@ import CloseButton from './CloseButton'
 import MinimizeButton from './MinimizeButton'
 import {AudioRowList, Content, Dialog, Error, Info, NoResult, RetryButton} from './ResultDialog.sc'
 
-const Index: React.FC = () => {
+const ResultDialog: React.FC = () => {
     const {maybeTrack, opened, setTrack} = useContext(AppContext)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(false)
@@ -129,4 +129,4 @@ const Index: React.FC = () => {
     )
 }
 
-export default Index
+export default ResultDialog
