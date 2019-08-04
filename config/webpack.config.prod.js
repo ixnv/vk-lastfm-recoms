@@ -17,7 +17,7 @@ module.exports = {
     },
 
     // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map",
+    devtool: false,
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
@@ -44,19 +44,17 @@ module.exports = {
 
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
             {
+                use: [
+                    "thread-loader",
+                    "source-map-loader"
+                ],
                 enforce: "pre",
                 test: /\.js$/,
-                loader: "source-map-loader"
             }
         ]
     },
 
     plugins: [
-        new ForkTsCheckerWebpackPlugin({
-            async: false,
-            tsconfig: resolveApp("tsconfig.json"),
-            tslint: resolveApp("tslint.json"),
-        }),
         new Dotenv(),
         new CopyPlugin([
             {
@@ -64,11 +62,13 @@ module.exports = {
             },
             {
                 from: 'src/manifest.json'
-            },
-            {
-                from: 'src/hot-reload.js'
             }
-        ])
+        ]),
+        new ForkTsCheckerWebpackPlugin({
+            tsconfig: resolveApp("tsconfig.json"),
+            tslint: resolveApp("tslint.json"),
+        }),
+
     ],
 
     // Some libraries import Node modules but don't use them in the browser.

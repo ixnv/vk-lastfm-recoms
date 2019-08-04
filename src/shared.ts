@@ -5,7 +5,7 @@ export type Track = {
     title: string
 }
 
-export const defaultTrack: Track = {
+export const defaultTrack: Readonly<Track> = {
     title: '',
     artist: ''
 }

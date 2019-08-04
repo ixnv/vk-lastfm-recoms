@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import * as React from 'react'
+import React from 'react'
 import * as ReactDOM from 'react-dom'
 import AppContext, {AppState} from '../AppContextProvider'
 import {defaultTrack, wrapperClass} from '../shared'
@@ -16,7 +16,7 @@ type Props = {
 }
 
 export default class RecommendButton extends React.Component<Props> {
-    public state = {
+    public readonly state = {
         track: defaultTrack
     }
 
