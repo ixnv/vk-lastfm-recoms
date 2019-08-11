@@ -8,7 +8,7 @@ app.get('/similar-tracks', async function (req, res) {
     const response = await getTracks(artist, track, unwanted)
 
     res.setHeader('Content-Type', 'application/json')
-    res.status(response.statusCode).end(JSON.stringify({
+    res.status(200).end(JSON.stringify({
         tracks: response.tracks,
         canFetchMoreTracks: response.canFetchMoreTracks
     }))

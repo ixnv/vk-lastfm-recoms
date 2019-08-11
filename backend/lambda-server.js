@@ -1,4 +1,4 @@
-const getTracks = require('./index')
+import getTracks from "./index";
 
 exports.handler = async (event, context, callback) => {
     if (event.httpMethod !== 'GET') {
@@ -34,7 +34,7 @@ exports.handler = async (event, context, callback) => {
     }
 
     callback(null, {
-        statusCode: response.statusCode,
+        statusCode: 200,
         body: JSON.stringify(res),
         headers: {
             'Content-Type': 'application/json',
