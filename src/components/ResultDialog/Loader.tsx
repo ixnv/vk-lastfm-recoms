@@ -70,7 +70,7 @@ const LoaderComponent: React.FC = () => {
         {animation: piece1Animation, left: '6px'},
         {animation: piece2Animation, left: '6px'},
         {animation: piece2Animation, left: '26px'},
-        {animation: piece3Animation, left: '45px'},
+        {animation: piece3Animation, left: '45px'}
     ]
 
     return (

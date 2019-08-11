@@ -1,38 +1,34 @@
-import React from 'react'
-import {useContext, useEffect, useState} from 'react'
+import React, {useContext, useEffect, useState} from 'react'
 import {fold, getOrElse, isNone} from 'fp-ts/lib/Option'
 import {pipe} from 'fp-ts/lib/pipeable'
 import Loader from './Loader'
 import AppContext from '../../AppContextProvider'
 import {getRecommendations, RecommendationsResponse} from '../../api/recommendations'
-import {searchTrack} from '../../api/vk'
 import {defaultTrack, Track} from '../../shared'
 import Backdrop from './Backdrop'
 import CloseButton from './CloseButton'
 import MinimizeButton from './MinimizeButton'
-import {AudioRowList, Content, Dialog, Error, Info, NoResult, RetryButton} from './ResultDialog.sc'
-import {randomId} from '../../util'
+import {Content, Dialog, Error, Info, NoResult, RetryButton} from './ResultDialog.sc'
+import AudioRowList from './AudioRowList'
 
 const ResultDialog: React.FC = () => {
-    const {maybeTrack, opened, setTrack} = useContext(AppContext)
-    const [loading, setLoading] = useState(false)
+    const {maybeTrack, setTrack, loading, setLoading} = useContext(AppContext)
+
     const [error, setError] = useState(false)
     const [noResult, setNoResult] = useState(false)
     const [canFetchMore, setCanFetchMore] = useState(false)
-    const [vkTracks, setVkTracks] = useState([] as HTMLDivElement[])
+    const [tracks, setTracks] = useState([] as Track[])
+    const [fetchingDone, setFetchingDone] = useState(false)
 
     useEffect(() => {
         if (isNone(maybeTrack)) {
             return
         }
 
-        // wtf
-        vkTracks.splice(0)
-
-        setVkTracks([])
         setNoResult(false)
         setLoading(true)
         setCanFetchMore(false)
+        setFetchingDone(false)
 
         const fetchRecommendations = () => {
             return pipe(
@@ -47,6 +43,8 @@ const ResultDialog: React.FC = () => {
         fetchRecommendations().then((recommendResponse: RecommendationsResponse) => {
             if (recommendResponse.error) {
                 setError(true)
+                setLoading(false)
+                return
             }
 
             if (!recommendResponse.tracks.length) {
@@ -55,27 +53,9 @@ const ResultDialog: React.FC = () => {
                 return
             }
 
-            const recommendedTracks = recommendResponse.tracks
-            recommendedTracks.forEach(async (recommendedTrack: Track, index) => {
-                const maybeFoundTrack = await searchTrack(recommendedTrack)
-
-                pipe(maybeFoundTrack, fold(
-                    () => null,
-                    vkTrack =>
-                        vkTracks.push(vkTrack)
-                    )
-                )
-
-                if (index === recommendedTracks.length - 1) {
-                    setLoading(false)
-                    if (!vkTracks.length) {
-                        setNoResult(true)
-                    } else {
-                        setVkTracks(vkTracks)
-                        setCanFetchMore(recommendResponse.canFetchMoreTracks)
-                    }
-                }
-            })
+            setTracks(recommendResponse.tracks)
+            setCanFetchMore(recommendResponse.canFetchMoreTracks)
+            setFetchingDone(true)
         }).catch(() => {
             setLoading(false)
             setError(true)
@@ -97,7 +77,6 @@ const ResultDialog: React.FC = () => {
 
     return (
         <>
-            {opened &&
             <Backdrop>
                 <Dialog tabIndex={0}>
                     <Content>
@@ -106,13 +85,7 @@ const ResultDialog: React.FC = () => {
                         <button className='flat_button button_wide secondary' onClick={retry}>Показать ещё</button>
                         }
                         {loading && <Loader/>}
-                        <AudioRowList>
-                            {
-                                vkTracks.map(vkTrack =>
-                                    <div key={randomId()} dangerouslySetInnerHTML={{__html: vkTrack.outerHTML}}/>
-                                )
-                            }
-                        </AudioRowList>
+                        {fetchingDone && <AudioRowList tracks={tracks}/>}
                         {noResult && <NoResult>Ничего не найдено</NoResult>}
                         {error &&
                         <Error>
@@ -125,7 +98,6 @@ const ResultDialog: React.FC = () => {
                     <MinimizeButton/>
                 </Dialog>
             </Backdrop>
-            }
         </>
     )
 }

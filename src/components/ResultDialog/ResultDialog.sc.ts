@@ -18,10 +18,6 @@ export const Info = styled.h3`
     padding: 0 10px;
 `
 
-export const AudioRowList = styled.div`
-    padding: 8px 0;
-`
-
 export const NoResult = styled.div`
     text-align: center;
     height: 10em;

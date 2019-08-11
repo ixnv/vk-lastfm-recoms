@@ -27,7 +27,11 @@
       true,
       "single",
       "avoid-escape"
-    ]
+    ],
+    "type-literal-delimiter": [
+      false
+    ],
+    "trailing-comma": false
   },
   "jsRules": {
     "object-literal-sort-keys": false,
