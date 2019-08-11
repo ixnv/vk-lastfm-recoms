@@ -4,7 +4,12 @@ import styled from 'styled-components'
 import {wrapperClass} from '../../shared'
 import AppContext from '../../AppContextProvider'
 
-const BackdropSC = styled.div`
+type Props = {
+    show: boolean
+}
+
+const Component = styled.div`
+    display: ${(props: Props) => props.show ? 'block' : 'none'};
     position: fixed;
     z-index: 550;
     top: 0;
@@ -18,7 +23,7 @@ const BackdropSC = styled.div`
 const backdropClass = `${wrapperClass}-backdrop`
 
 const Backdrop: React.FC = ({children}) => {
-    const {setDialogOpened} = useContext(AppContext)
+    const {opened, setDialogOpened} = useContext(AppContext)
     const backdropClose = (e: SyntheticEvent) => {
         const target = e.target as HTMLDivElement
         if (target.classList.contains(backdropClass)) {
@@ -36,9 +41,9 @@ const Backdrop: React.FC = ({children}) => {
     }
 
     return (
-        <BackdropSC onClick={backdropClose} className={backdropClass} onKeyUp={closeOnEsc}>
+        <Component className={backdropClass} show={opened} onClick={backdropClose} onKeyUp={closeOnEsc}>
             {children}
-        </BackdropSC>
+        </Component>
     )
 }
 
