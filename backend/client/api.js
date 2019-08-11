@@ -1,12 +1,14 @@
 import fetch from 'node-fetch'
 import {objectToQueryString, shuffle} from "../util";
 
-export const ERROR_INVALID_PARAM = 6
+require('dotenv').config()
 
 export class ApiClient {
-    constructor(token, apiRoot) {
+    static ERROR_INVALID_PARAM = 6
+
+    constructor(token) {
         this.token = token
-        this.apiRoot = apiRoot
+        this.apiRoot = process.env.LAST_FM_API_ROOT
     }
 
     /**

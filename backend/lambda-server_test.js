@@ -1,4 +1,4 @@
-const { handler } = require("./index.js")
+const {handler} = require("./index.js")
 
 async function test(event, context, callback) {
     return await handler(event, context, callback)
@@ -7,10 +7,12 @@ async function test(event, context, callback) {
 const event = {
     httpMethod: 'GET',
     queryStringParameters: {
-        artist: 'Yann Pillas',
-        track: 'Sarah\'s sleep',
+        artist: 'Kyivstoner',
+        track: 'О лени',
         unwanted: '["Oxxxymiron"]'
     }
 }
 
-test(event, null, (response) => console.log(response))
+test(event, null, (fuck, response) => {
+    console.log(response)
+})

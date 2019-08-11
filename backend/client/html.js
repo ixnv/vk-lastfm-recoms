@@ -1,8 +1,8 @@
 import {JSDOM} from 'jsdom'
 
 export class HTMLClient {
-    constructor(apiRoot) {
-        this.apiRoot = apiRoot
+    constructor() {
+        this.apiRoot = process.env.LAST_FM_WEBSITE
     }
 
     /**

@@ -14,11 +14,12 @@ import AudioRowList from './AudioRowList'
 const ResultDialog: React.FC = () => {
     const {maybeTrack, setTrack, loading, setLoading} = useContext(AppContext)
 
-    const [error, setError] = useState(false)
-    const [noResult, setNoResult] = useState(false)
-    const [canFetchMore, setCanFetchMore] = useState(false)
     const [tracks, setTracks] = useState([] as Track[])
     const [fetchingDone, setFetchingDone] = useState(false)
+    const [canFetchMore, setCanFetchMore] = useState(false)
+
+    const [error, setError] = useState(false)
+    const [noResult, setNoResult] = useState(false)
 
     useEffect(() => {
         if (isNone(maybeTrack)) {
