@@ -34,11 +34,26 @@ export async function searchTrack(track: Track): Promise<Option<HTMLDivElement>>
         // decode to utf-8
         async body => body.arrayBuffer().then(data => (new TextDecoder('windows-1251')).decode(data))
     ).then(response => {
-        // in the beginning of response body there is VK specific non-html junk, trim it
+        let parsed
+        try {
+            // remove '<!--'
+            parsed = JSON.parse(response.substring(4))
+        } catch (e) {
+            return none
+        }
+
+        // errrh...
+        if (!parsed.payload || !parsed.payload[1][2]) {
+            return none
+        }
+
+        const responseHTML: string = parsed.payload[1][2]
         const html = document.createElement('html')
-        html.innerHTML = response.substring(response.search('<div'))
+        html.innerHTML = responseHTML
 
         const audioRows = html.querySelectorAll('.audio_row')
+
+        console.log(audioRows)
 
         const distances = {}
 
