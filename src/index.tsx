@@ -4,7 +4,10 @@ import ResultMinimized from './components/ResultMinimized'
 import {AppContextProvider} from './AppContextProvider'
 import RecommendButton, {RecommendButtonClass} from './components/RecommendButton'
 import * as ReactDOM from 'react-dom'
+import * as Sentry from '@sentry/browser'
 import {wrapperClass} from './shared'
+
+Sentry.init({dsn: 'https://c6cb0296247848808eb6d4d27077bf85@sentry.io/1764521'})
 
 let buttonRef: RecommendButton | null
 

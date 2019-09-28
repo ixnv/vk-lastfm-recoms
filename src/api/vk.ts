@@ -3,6 +3,7 @@ import {Track} from '../shared'
 import levenshtein from 'js-levenshtein'
 import {getOrElse} from 'fp-ts/lib/Option'
 import {pipe} from 'fp-ts/lib/pipeable'
+import * as Sentry from '@sentry/browser'
 
 export function getUserId(): Option<string> {
     const audioPageLink = document.querySelector('#l_aud > a') as HTMLAnchorElement
@@ -15,7 +16,7 @@ export function getUserId(): Option<string> {
 
 export async function searchTrack(track: Track): Promise<Option<HTMLDivElement>> {
     const q = encodeURIComponent(`${track.artist} ${track.title}`)
-    // user can switch accounts at any time, can't maybeTrack it, therefore we need to get user id on every search
+    // user can switch accounts at any time, can't 'maybeTrack' it, therefore we need to get user id on every search
     const userId = pipe(
         getUserId(),
         getOrElse(() => '')
@@ -39,6 +40,13 @@ export async function searchTrack(track: Track): Promise<Option<HTMLDivElement>>
             // remove '<!--'
             parsed = JSON.parse(response.substring(4))
         } catch (e) {
+            Sentry.withScope(scope => {
+                scope.setExtras({
+                    q,
+                    ua: window.navigator.userAgent
+                })
+                Sentry.captureException(e)
+            })
             return none
         }
 
@@ -52,8 +60,6 @@ export async function searchTrack(track: Track): Promise<Option<HTMLDivElement>>
         html.innerHTML = responseHTML
 
         const audioRows = html.querySelectorAll('.audio_row')
-
-        console.log(audioRows)
 
         const distances = {}
 

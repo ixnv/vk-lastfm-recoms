@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/ixnv/vk-lastfm-recoms#readme",
   "dependencies": {
+    "@sentry/browser": "^5.6.3",
     "fp-ts": "2.0.2",
     "js-levenshtein": "^1.1.6",
     "react": "^16.8.6",
