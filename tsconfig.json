@@ -43,6 +43,6 @@
     "__tests__",
     "jest.config.js",
     "src/hot-reload.js",
-    "publish_to_webstore.js"
+    "publish-to-webstore.js"
   ]
 }

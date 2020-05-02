@@ -1,9 +1,9 @@
 declare module 'js-levenshtein' {
-    function levenshtein(a: string, b: string): number;
+  function levenshtein (a: string, b: string): number;
 
-    export = levenshtein
+  export = levenshtein
 }
 
 interface MouseEvent {
-    originalEvent: MouseEvent
+  originalEvent: MouseEvent
 }

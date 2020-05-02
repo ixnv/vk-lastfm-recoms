@@ -1,8 +1,8 @@
 import styled from 'styled-components'
 import React from 'react'
 import * as ReactDOM from 'react-dom'
-import AppContext, {AppState} from '../AppContextProvider'
-import {defaultTrack, wrapperClass} from '../shared'
+import AppContext, { AppState } from '../AppContextProvider'
+import { defaultTrack, wrapperClass } from '../shared'
 
 export const RecommendButtonClass = `${wrapperClass}-button`
 
@@ -12,53 +12,53 @@ const Button = styled.button`
 `
 
 type Props = {
-    parentEl: HTMLDivElement
+  parentEl: HTMLDivElement
 }
 
 export default class RecommendButton extends React.Component<Props> {
-    public readonly state = {
-        track: defaultTrack
-    }
+  public readonly state = {
+    track: defaultTrack
+  }
 
-    private readonly el: HTMLDivElement
-    private readonly parentEl: HTMLDivElement
+  private readonly el: HTMLDivElement
+  private readonly parentEl: HTMLDivElement
 
-    constructor(props: Props) {
-        super(props)
+  constructor (props: Props) {
+    super(props)
 
-        this.el = document.createElement('div')
-        this.el.style.display = 'inline-block'
-        this.parentEl = props.parentEl
-    }
+    this.el = document.createElement('div')
+    this.el.style.display = 'inline-block'
+    this.parentEl = props.parentEl
+  }
 
-    public componentDidMount(): void {
-        this.parentEl.appendChild(this.el)
-    }
+  public componentDidMount (): void {
+    this.parentEl.appendChild(this.el)
+  }
 
-    public componentWillUnmount(): void {
-        this.parentEl.removeChild(this.el)
-    }
+  public componentWillUnmount (): void {
+    this.parentEl.removeChild(this.el)
+  }
 
-    public render() {
-        return ReactDOM.createPortal(
-            <AppContext.Consumer>
-                {
-                    (appState: AppState) => {
-                        const handleMouseUp = () => {
-                            appState.setTrack(this.state.track)
-                            appState.setMinimized(false)
-                            appState.setDialogOpened(true)
-                        }
+  public render () {
+    return ReactDOM.createPortal(
+      <AppContext.Consumer>
+        {
+          (appState: AppState) => {
+            const handleMouseUp = () => {
+              appState.setTrack(this.state.track)
+              appState.setMinimized(false)
+              appState.setDialogOpened(true)
+            }
 
-                        return (
-                            <Button className={`${RecommendButtonClass} audio_row__action`}
-                                    title='Показать похожие из Last FM'
-                                    onMouseUp={handleMouseUp}/>
-                        )
-                    }
-                }
-            </AppContext.Consumer>,
-            this.el
-        )
-    }
+            return (
+              <Button className={`${RecommendButtonClass} audio_row__action`}
+                      title='Показать похожие из Last FM'
+                      onMouseUp={handleMouseUp}/>
+            )
+          }
+        }
+      </AppContext.Consumer>,
+      this.el
+    )
+  }
 }

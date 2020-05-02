@@ -1,5 +1,5 @@
 import React from 'react'
-import {useContext} from 'react'
+import { useContext } from 'react'
 import styled from 'styled-components'
 import Action from './Action.sc'
 import AppContext from '../../AppContextProvider'
@@ -11,15 +11,15 @@ const MinimizeButtonSC = styled(Action)`
 `
 
 const MinimizeButton: React.FC = () => {
-    const {setDialogOpened, setMinimized} = useContext(AppContext)
-    const minimize = () => {
-        setMinimized(true)
-        setDialogOpened(false)
-    }
+  const { setDialogOpened, setMinimized } = useContext(AppContext)
+  const minimize = () => {
+    setMinimized(true)
+    setDialogOpened(false)
+  }
 
-    return (
-        <MinimizeButtonSC onClick={minimize}/>
-    )
+  return (
+    <MinimizeButtonSC onClick={minimize}/>
+  )
 }
 
 export default MinimizeButton

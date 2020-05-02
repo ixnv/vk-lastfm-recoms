@@ -1,5 +1,5 @@
 import React from 'react'
-import {useContext} from 'react'
+import { useContext } from 'react'
 import styled from 'styled-components'
 import Action from './Action.sc'
 import AppContext from '../../AppContextProvider'
@@ -10,14 +10,14 @@ const CloseButtonSC = styled(Action)`
 `
 
 const CloseButton: React.FC = () => {
-    const {setDialogOpened} = useContext(AppContext)
-    const close = () => {
-        setDialogOpened(false)
-    }
+  const { setDialogOpened } = useContext(AppContext)
+  const close = () => {
+    setDialogOpened(false)
+  }
 
-    return (
-        <CloseButtonSC onClick={close}/>
-    )
+  return (
+    <CloseButtonSC onClick={close}/>
+  )
 }
 
 export default CloseButton

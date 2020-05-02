@@ -1,5 +1,5 @@
 import React from 'react'
-import styled, {Keyframes, keyframes} from 'styled-components'
+import styled, { Keyframes, keyframes } from 'styled-components'
 
 const Wrapper = styled.div`
     display: flex;
@@ -52,9 +52,9 @@ const piece3Animation = keyframes`
 `
 
 type AnimationProps = {
-    childIndex: number
-    animation: Keyframes
-    left: string
+  childIndex: number
+  animation: Keyframes
+  left: string
 }
 
 const Piece = styled(Loader)`
@@ -66,28 +66,28 @@ const Piece = styled(Loader)`
 `
 
 const LoaderComponent: React.FC = () => {
-    const pieces = [
-        {animation: piece1Animation, left: '6px'},
-        {animation: piece2Animation, left: '6px'},
-        {animation: piece2Animation, left: '26px'},
-        {animation: piece3Animation, left: '45px'}
-    ]
+  const pieces = [
+    { animation: piece1Animation, left: '6px' },
+    { animation: piece2Animation, left: '6px' },
+    { animation: piece2Animation, left: '26px' },
+    { animation: piece3Animation, left: '45px' }
+  ]
 
-    return (
-        <Wrapper>
-            <Loader>
-                {
-                    pieces.forEach((piece, index) =>
-                        <Piece key={index} childIndex={index + 1} animation={piece.animation} left={piece.left}/>
-                    )
-                }
-                <Piece childIndex={1} animation={piece1Animation} left='6px'/>
-                <Piece childIndex={2} animation={piece2Animation} left='6px'/>
-                <Piece childIndex={3} animation={piece2Animation} left='26px'/>
-                <Piece childIndex={4} animation={piece3Animation} left='45px'/>
-            </Loader>
-        </Wrapper>
-    )
+  return (
+    <Wrapper>
+      <Loader>
+        {
+          pieces.forEach((piece, index) =>
+            <Piece key={index} childIndex={index + 1} animation={piece.animation} left={piece.left}/>
+          )
+        }
+        <Piece childIndex={1} animation={piece1Animation} left='6px'/>
+        <Piece childIndex={2} animation={piece2Animation} left='6px'/>
+        <Piece childIndex={3} animation={piece2Animation} left='26px'/>
+        <Piece childIndex={4} animation={piece3Animation} left='45px'/>
+      </Loader>
+    </Wrapper>
+  )
 }
 
 export default LoaderComponent

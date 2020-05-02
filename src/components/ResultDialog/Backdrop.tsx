@@ -1,11 +1,11 @@
-import {SyntheticEvent, useContext} from 'react'
+import { SyntheticEvent, useContext } from 'react'
 import React from 'react'
 import styled from 'styled-components'
-import {wrapperClass} from '../../shared'
+import { wrapperClass } from '../../shared'
 import AppContext from '../../AppContextProvider'
 
 type Props = {
-    show: boolean
+  show: boolean
 }
 
 const Component = styled.div`
@@ -22,29 +22,29 @@ const Component = styled.div`
 
 const backdropClass = `${wrapperClass}-backdrop`
 
-const Backdrop: React.FC = ({children}) => {
-    const {opened, setDialogOpened} = useContext(AppContext)
-    const backdropClose = (e: SyntheticEvent) => {
-        const target = e.target as HTMLDivElement
-        if (target.classList.contains(backdropClass)) {
-            close()
-        }
+const Backdrop: React.FC = ({ children }) => {
+  const { opened, setDialogOpened } = useContext(AppContext)
+  const backdropClose = (e: SyntheticEvent) => {
+    const target = e.target as HTMLDivElement
+    if (target.classList.contains(backdropClass)) {
+      close()
     }
+  }
 
-    const close = () => {
-        setDialogOpened(false)
+  const close = () => {
+    setDialogOpened(false)
+  }
+  const closeOnEsc = (e: React.KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key === 'Escape') {
+      close()
     }
-    const closeOnEsc = (e: React.KeyboardEvent<HTMLDivElement>): void => {
-        if (e.key === 'Escape') {
-            close()
-        }
-    }
+  }
 
-    return (
-        <Component className={backdropClass} show={opened} onClick={backdropClose} onKeyUp={closeOnEsc}>
-            {children}
-        </Component>
-    )
+  return (
+    <Component className={backdropClass} show={opened} onClick={backdropClose} onKeyUp={closeOnEsc}>
+      {children}
+    </Component>
+  )
 }
 
 export default Backdrop
